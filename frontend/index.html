@@ -154,7 +154,7 @@
             if (activeToken) {
                 // Save token so dashboard can use it for requests
                 localStorage.setItem("auth_token", activeToken);
-                window.location.href = "dashboard.html";
+               window.location.href = "frontend/dashboard.html";
             } else {
                 throw new Error("Authentication response is missing a valid token key.");
             }

@@ -1,0 +1,31 @@
+def validate_bill_payload(data):
+    """
+    Validates the structural and logical integrity of the inbound billing payload.
+    Returns (True, None) if valid, or (False, error_message) if an anomaly is detected.
+    """
+    if not data:
+        return False, "Request payload data body is empty"
+
+    customer_id = data.get('customer_id')
+    items = data.get('items', [])
+
+    if not customer_id or not isinstance(customer_id, int):
+        return False, "A valid integer customer_id is required"
+
+    if not items or not isinstance(items, list):
+        return False, "Items must be a non-empty list structure"
+
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            return False, f"Item at slot index {index} must be an object"
+            
+        product_id = item.get('product_id')
+        quantity = item.get('quantity', 1)
+
+        if not product_id or not isinstance(product_id, int):
+            return False, f"Item index {index} is missing a valid integer product_id"
+            
+        if not isinstance(quantity, int) or quantity <= 0:
+            return False, f"Item index {index} requires a positive, non-zero quantity value"
+
+    return True, None

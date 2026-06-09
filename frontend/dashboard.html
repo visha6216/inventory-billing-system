@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Billing System</title>
+    <script src="app.js"></script>
+    <script>
+        checkAuthentication();
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+    </div>
+    <div class="nav-actions">
+        <a href="#" class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>📊 Inventory Billing System Dashboard</h1>
+    <div class="dashboard">
+        <div class="card products">
+            <h2>Products</h2>
+            <p id="products">0</p>
+        </div>
+        <div class="card customers">
+            <h2>Customers</h2>
+            <p id="customers">0</p>
+        </div>
+        <div class="card bills">
+            <h2>Bills</h2>
+            <p id="bills">0</p>
+        </div>
+        <div class="card revenue">
+            <h2>Revenue</h2>
+            <p id="sales">0</p>
+        </div>
+    </div>
+
+    <div class="table-card" style="margin-top: 2rem; padding: 1.5rem; background: #1e293b; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+        <h2 style="font-size: 1.2rem; color: #fff; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-chart-line" style="color: #38bdf8;"></i> Financial Operations Trend Analysis
+        </h2>
+        <div style="position: relative; height: 280px; width: 100%;">
+            <canvas id="revenueAnalyticsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

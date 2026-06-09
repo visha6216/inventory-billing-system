@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP — Sales Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg:       #0a0c12;
+            --surface:  #111318;
+            --card:     #161920;
+            --card2:    #1c1f2e;
+            --border:   #1e2130;
+            --border2:  #262b40;
+            --accent:   #6366f1;
+            --accent2:  #818cf8;
+            --green:    #10b981;
+            --amber:    #f59e0b;
+            --red:      #ef4444;
+            --cyan:     #06b6d4;
+            --rose:     #f43f5e;
+            --text:     #e2e8f0;
+            --muted:    #475569;
+            --muted2:   #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Outfit', sans-serif; min-height: 100vh;
+            background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.08), transparent);
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(17,19,24,0.95); padding: 0.7rem 2rem;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .nav-links { display: flex; align-items: center; gap: 2px; }
+        .navbar a {
+            color: var(--muted2); text-decoration: none; padding: 0.48rem 0.9rem;
+            font-size: 0.86rem; font-weight: 500; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s;
+        }
+        .navbar a:hover, .navbar a.active { color: #fff; background: rgba(255,255,255,0.06); }
+        .btn-logout {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: rgba(239,68,68,0.08) !important; color: #f87171 !important;
+            border: 1px solid rgba(239,68,68,0.2) !important;
+            padding: 0.42rem 0.9rem !important; font-weight: 600 !important;
+            font-size: 0.83rem !important; border-radius: 6px !important;
+            cursor: pointer; transition: all 0.2s !important; text-decoration: none;
+        }
+        .btn-logout:hover { background: #ef4444 !important; color: #fff !important; }
+
+        /* ── Page header ── */
+        .page-header {
+            padding: 32px 28px 20px;
+            display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;
+        }
+        .page-title { font-size: 1.9rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+        .page-title span { color: var(--accent2); }
+        .page-sub { font-size: 0.85rem; color: var(--muted2); margin-top: 4px; }
+
+        /* ── Period filter ── */
+        .period-pills { display: flex; gap: 6px; }
+        .period-pill {
+            padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+            border: 1px solid var(--border2); background: var(--card); color: var(--muted2);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .period-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 16px rgba(99,102,241,0.3); }
+
+        /* ── Grid ── */
+        .page-grid { padding: 0 28px 40px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* ── KPI Strip ── */
+        .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+        .kpi-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px 18px;
+            position: relative; overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+        }
+        .kpi-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+        .kpi-card.k1::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+        .kpi-card.k2::before { background: linear-gradient(90deg, var(--green), #34d399); }
+        .kpi-card.k3::before { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+        .kpi-card.k4::before { background: linear-gradient(90deg, var(--cyan), #67e8f9); }
+        .kpi-card.k5::before { background: linear-gradient(90deg, var(--rose), #fb7185); }
+        .kpi-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; margin-bottom: 14px;
+        }
+        .k1 .kpi-icon { background: rgba(99,102,241,0.12); color: var(--accent2); }
+        .k2 .kpi-icon { background: rgba(16,185,129,0.12); color: var(--green); }
+        .k3 .kpi-icon { background: rgba(245,158,11,0.12); color: var(--amber); }
+        .k4 .kpi-icon { background: rgba(6,182,212,0.12); color: var(--cyan); }
+        .k5 .kpi-icon { background: rgba(244,63,94,0.12); color: var(--rose); }
+        .kpi-value { font-size: 1.65rem; font-weight: 800; color: #fff; line-height: 1; font-family: 'DM Mono', monospace; }
+        .kpi-label { font-size: 0.75rem; color: var(--muted2); margin-top: 6px; font-weight: 500; }
+        .kpi-delta {
+            font-size: 0.72rem; font-weight: 600; margin-top: 8px;
+            display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .kpi-delta.up   { background: rgba(16,185,129,0.1);  color: var(--green); }
+        .kpi-delta.down { background: rgba(239,68,68,0.1);   color: var(--red); }
+        .kpi-delta.neu  { background: rgba(148,163,184,0.1); color: var(--muted2); }
+
+        /* ── Chart row ── */
+        .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .chart-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 22px;
+            animation: fadeUp 0.4s ease 0.1s both;
+        }
+        .chart-title {
+            font-size: 0.92rem; font-weight: 700; color: #fff; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .chart-sub { font-size: 0.75rem; color: var(--muted2); margin-bottom: 18px; }
+        .chart-wrap { position: relative; }
+
+        /* ── Products grid ── */
+        .products-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* ── Table card ── */
+        .table-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+            animation: fadeUp 0.4s ease 0.15s both;
+        }
+        .tc-header {
+            padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .tc-title { font-size: 0.9rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .table { color: var(--text) !important; font-size: 0.83rem; margin: 0; }
+        .table th {
+            background: #13161f !important; color: var(--muted) !important;
+            border-bottom: 1px solid var(--border) !important;
+            font-size: 0.68rem; letter-spacing: 1px; text-transform: uppercase;
+            padding: 10px 16px; font-weight: 600;
+        }
+        .table td {
+            background: var(--card) !important; border-bottom: 1px solid var(--border) !important;
+            padding: 11px 16px; vertical-align: middle; color: var(--text) !important;
+        }
+        .table-hover tbody tr:hover td { background: var(--card2) !important; }
+        .mono { font-family: 'DM Mono', monospace; }
+
+        /* ── Rank badge ── */
+        .rank { width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+        .rank-1 { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .rank-2 { background: rgba(148,163,184,0.1); color: #94a3b8; }
+        .rank-3 { background: rgba(180,120,60,0.1);  color: #b47c3c; }
+        .rank-n { background: rgba(30,33,48,0.8);    color: var(--muted2); }
+
+        /* ── Progress bar ── */
+        .prog-wrap { height: 5px; background: var(--border2); border-radius: 99px; margin-top: 5px; overflow: hidden; }
+        .prog-fill  { height: 100%; border-radius: 99px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+        /* ── Stock status ── */
+        .stock-ok  { color: var(--green); font-size: 0.75rem; font-weight: 600; }
+        .stock-low { color: var(--amber); font-size: 0.75rem; font-weight: 600; }
+        .stock-out { color: var(--red);   font-size: 0.75rem; font-weight: 600; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-ok  { background: var(--green); }
+        .dot-low { background: var(--amber); }
+        .dot-out { background: var(--red); }
+
+        /* ── Alert strip ── */
+        .alert-strip {
+            background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 10px; padding: 10px 16px;
+            display: flex; align-items: center; gap: 10px; font-size: 0.83rem;
+        }
+        .alert-strip i { color: var(--amber); }
+
+        /* ── Recent sales row ── */
+        .sales-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+
+        /* ── Customer badge ── */
+        .cust-avatar {
+            width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; color: #fff;
+        }
+
+        /* ── Skeleton loader ── */
+        .skel { background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .kpi-card:nth-child(1) { animation-delay: 0.0s; }
+        .kpi-card:nth-child(2) { animation-delay: 0.06s; }
+        .kpi-card:nth-child(3) { animation-delay: 0.12s; }
+        .kpi-card:nth-child(4) { animation-delay: 0.18s; }
+        .kpi-card:nth-child(5) { animation-delay: 0.24s; }
+
+        /* ── Toast ── */
+        .toast-n {
+            position: fixed; bottom: 24px; right: 24px; padding: 14px 20px;
+            background: #1e293b; border-left: 4px solid var(--green); color: #fff;
+            border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            display: flex; align-items: center; gap: 10px; z-index: 9999;
+            font-size: 0.88rem; font-weight: 500;
+            transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .toast-n.show { transform: translateY(0); opacity: 1; }
+        .toast-n.err  { border-left-color: var(--red); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+        @media (max-width: 1200px) {
+            .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+            .chart-row, .products-row, .sales-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+            .page-header { padding: 20px 16px 12px; }
+            .page-grid { padding: 0 16px 30px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+        <a href="analytics.html" class="active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span id="last_refresh" style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;"></span>
+        <button onclick="loadAll()" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:var(--accent2);padding:6px 14px;border-radius:6px;font-size:0.8rem;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">
+            <i class="fa-solid fa-rotate-right me-1"></i>Refresh
+        </button>
+        <a href="#" class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <div class="page-title">Sales <span>Intelligence</span></div>
+        <div class="page-sub">Every number you need — one page, zero clicks</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="period-pills">
+            <div class="period-pill active" onclick="setPeriod('7',this)">7 Days</div>
+            <div class="period-pill" onclick="setPeriod('30',this)">30 Days</div>
+            <div class="period-pill" onclick="setPeriod('90',this)">3 Months</div>
+            <div class="period-pill" onclick="setPeriod('365',this)">1 Year</div>
+            <div class="period-pill" onclick="setPeriod('all',this)">All Time</div>
+        </div>
+    </div>
+</div>
+
+<div class="page-grid">
+
+    <!-- ── KPI Strip ── -->
+    <div class="kpi-strip">
+        <div class="kpi-card k1">
+            <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="kpi-value" id="kpi_revenue">—</div>
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-delta neu" id="kpi_revenue_delta">Loading…</div>
+        </div>
+        <div class="kpi-card k2">
+            <div class="kpi-icon"><i class="fa-solid fa-receipt"></i></div>
+            <div class="kpi-value" id="kpi_bills">—</div>
+            <div class="kpi-label">Total Bills</div>
+            <div class="kpi-delta neu" id="kpi_bills_delta">Loading…</div>
+        </div>
+        <div class="kpi-card k3">
+            <div class="kpi-icon"><i class="fa-solid fa-box-open"></i></div>
+            <div class="kpi-value" id="kpi_items_sold">—</div>
+            <div class="kpi-label">Items Sold</div>
+            <div class="kpi-delta neu" id="kpi_items_delta">Loading…</div>
+        </div>
+        <div class="kpi-card k4">
+            <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="kpi-value" id="kpi_customers">—</div>
+            <div class="kpi-label">Active Customers</div>
+            <div class="kpi-delta neu" id="kpi_cust_delta">Loading…</div>
+        </div>
+        <div class="kpi-card k5">
+            <div class="kpi-icon"><i class="fa-solid fa-percent"></i></div>
+            <div class="kpi-value" id="kpi_gst">—</div>
+            <div class="kpi-label">GST Collected</div>
+            <div class="kpi-delta neu" id="kpi_gst_delta">Loading…</div>
+        </div>
+    </div>
+
+    <!-- ── Alerts ── -->
+    <div id="alerts_strip" style="display:none;">
+        <div class="alert-strip">
+            <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+            <span id="alerts_text"></span>
+        </div>
+    </div>
+
+    <!-- ── Revenue Chart + Donut ── -->
+    <div class="chart-row">
+        <div class="chart-card">
+            <div class="chart-title"><i class="fa-solid fa-chart-area" style="color:var(--accent2);"></i> Revenue Trend</div>
+            <div class="chart-sub">Daily revenue over selected period</div>
+            <div class="chart-wrap"><canvas id="revenue_chart" height="90"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title"><i class="fa-solid fa-chart-pie" style="color:var(--cyan);"></i> Sales Breakdown</div>
+            <div class="chart-sub">Revenue split by top categories</div>
+            <div class="chart-wrap"><canvas id="donut_chart" height="180"></canvas></div>
+            <div id="donut_legend" style="margin-top:14px;display:flex;flex-direction:column;gap:7px;"></div>
+        </div>
+    </div>
+
+    <!-- ── Top Products ── -->
+    <div class="products-row">
+        <!-- Most Sold Products -->
+        <div class="table-card">
+            <div class="tc-header">
+                <div class="tc-title">
+                    <i class="fa-solid fa-fire" style="color:var(--rose);"></i> Top Selling Products
+                </div>
+                <span style="font-size:0.72rem;color:var(--muted);" id="top_prod_period">Last 30 days</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr>
+                        <th>#</th><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Share</th>
+                    </tr></thead>
+                    <tbody id="top_products_body">
+                        <tr><td colspan="5" class="text-center py-4" style="color:var(--muted);">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stock Status -->
+        <div class="table-card">
+            <div class="tc-header">
+                <div class="tc-title">
+                    <i class="fa-solid fa-warehouse" style="color:var(--amber);"></i> Stock Status
+                </div>
+                <div style="display:flex;gap:12px;font-size:0.72rem;color:var(--muted2);">
+                    <span><span class="dot dot-ok"></span>OK</span>
+                    <span><span class="dot dot-low"></span>Low</span>
+                    <span><span class="dot dot-out"></span>Out</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr>
+                        <th>Product</th><th>In Stock</th><th>Status</th><th>Value</th>
+                    </tr></thead>
+                    <tbody id="stock_body">
+                        <tr><td colspan="4" class="text-center py-4" style="color:var(--muted);">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Recent Sales + Top Customers ── -->
+    <div class="sales-row">
+
+        <!-- Recent Bills -->
+        <div class="table-card">
+            <div class="tc-header">
+                <div class="tc-title">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent2);"></i> Recent Sales
+                </div>
+                <a href="bill_history.html" style="font-size:0.75rem;color:var(--accent2);text-decoration:none;font-weight:600;">
+                    View All <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr>
+                        <th>Bill #</th><th>Customer</th><th>Items</th><th>Total</th><th>GST</th><th>Date</th>
+                    </tr></thead>
+                    <tbody id="recent_sales_body">
+                        <tr><td colspan="6" class="text-center py-4" style="color:var(--muted);">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Customers -->
+        <div class="table-card">
+            <div class="tc-header">
+                <div class="tc-title">
+                    <i class="fa-solid fa-crown" style="color:var(--amber);"></i> Top Customers
+                </div>
+                <span style="font-size:0.72rem;color:var(--muted);">By purchase value</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr>
+                        <th>#</th><th>Customer</th><th>Bills</th><th>Total Spent</th>
+                    </tr></thead>
+                    <tbody id="top_customers_body">
+                        <tr><td colspan="4" class="text-center py-4" style="color:var(--muted);">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Expiry Alerts ── -->
+    <div class="table-card" id="expiry_section">
+        <div class="tc-header">
+            <div class="tc-title">
+                <i class="fa-solid fa-calendar-xmark" style="color:var(--red);"></i> Expiry Alerts
+                <span id="expiry_count_badge" style="background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.25);font-size:0.7rem;padding:2px 8px;border-radius:20px;font-weight:600;"></span>
+            </div>
+            <span style="font-size:0.72rem;color:var(--muted);">Products expiring within 30 days</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead><tr>
+                    <th>Product</th><th>Vendor</th><th>Expiry Date</th><th>Days Left</th><th>Urgency</th>
+                </tr></thead>
+                <tbody id="expiry_body">
+                    <tr><td colspan="5" class="text-center py-4" style="color:var(--muted);">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:5000";
+let currentPeriod = "30";
+let revenueChart = null;
+let donutChart   = null;
+let allBills     = [];
+let allProducts  = [];
+let allCustomers = [];
+let billItems    = [];
+
+function getToken() { return localStorage.getItem("auth_token") || ""; }
+function authH()    { return { "Authorization": "Bearer " + getToken() }; }
+function logout()   { localStorage.removeItem("auth_token"); window.location.href = "index.html"; }
+
+function toast(msg, err=false) {
+    const old = document.querySelector('.toast-n'); if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = `toast-n${err?' err':''}`;
+    t.innerHTML = `<i class="fa-solid ${err?'fa-circle-exclamation':'fa-circle-check'}" style="color:${err?'#ef4444':'#10b981'};"></i> ${msg}`;
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),50);
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},4000);
+}
+
+function setPeriod(p, el) {
+    currentPeriod = p;
+    document.querySelectorAll('.period-pill').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    renderAll();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) { window.location.href = "index.html"; return; }
+    loadAll();
+});
+
+async function loadAll() {
+    document.getElementById("last_refresh").textContent = "Refreshing…";
+    try {
+        const [billsRes, productsRes, customersRes, expiryRes] = await Promise.all([
+            fetch(`${API}/bill-history?limit=200&page=1`, { headers: authH() }),
+            fetch(`${API}/products`,  { headers: authH() }),
+            fetch(`${API}/customers`, { headers: authH() }),
+            fetch(`${API}/products/expiry-alerts`, { headers: authH() }),
+        ]);
+        const billData = await billsRes.json();
+        allBills       = billData.bills || billData || [];
+        allProducts    = productsRes.ok  ? await productsRes.json()  : [];
+        allCustomers   = customersRes.ok ? await customersRes.json() : [];
+        const expiry   = expiryRes.ok    ? await expiryRes.json()    : [];
+
+        // Load bill items for each bill (batch — use existing bill-details)
+        await loadBillItems();
+
+        renderAll();
+        renderExpiry(expiry);
+        document.getElementById("last_refresh").textContent =
+            "Updated " + new Date().toLocaleTimeString('en-IN');
+    } catch(e) {
+        toast("Failed to load some data. Check server.", true);
+        document.getElementById("last_refresh").textContent = "Error";
+    }
+}
+
+async function loadBillItems() {
+    // Build product sales map from bill items
+    billItems = [];
+    const slice = allBills.slice(0, 50); // fetch details for last 50 bills
+    await Promise.all(slice.map(async b => {
+        try {
+            const r = await fetch(`${API}/bill-details/${b.bill_id}`, { headers: authH() });
+            if (r.ok) {
+                const d = await r.json();
+                (d.items||[]).forEach(item => billItems.push({ ...item, bill_id: b.bill_id, bill_date: b.bill_date || b.created_at, customer_id: b.customer_id }));
+            }
+        } catch(e) {}
+    }));
+}
+
+// ── Filter bills by period ──
+function filterBills() {
+    if (currentPeriod === 'all') return allBills;
+    const days = parseInt(currentPeriod);
+    const cutoff = new Date(Date.now() - days * 864e5);
+    return allBills.filter(b => {
+        const d = new Date(b.bill_date || b.created_at);
+        return d >= cutoff;
+    });
+}
+
+function filterItems() {
+    if (currentPeriod === 'all') return billItems;
+    const days = parseInt(currentPeriod);
+    const cutoff = new Date(Date.now() - days * 864e5);
+    return billItems.filter(b => new Date(b.bill_date) >= cutoff);
+}
+
+function renderAll() {
+    const bills = filterBills();
+    const items = filterItems();
+    renderKPIs(bills, items);
+    renderRevenueChart(bills);
+    renderDonut(items);
+    renderTopProducts(items);
+    renderStockStatus();
+    renderRecentSales(bills);
+    renderTopCustomers(bills);
+    renderAlerts();
+}
+
+// ── KPIs ──
+function renderKPIs(bills, items) {
+    const revenue   = bills.reduce((s,b) => s + parseFloat(b.final_amount||0), 0);
+    const gstTotal  = bills.reduce((s,b) => s + parseFloat(b.gst_amount||0), 0);
+    const itemsSold = items.reduce((s,i) => s + (i.quantity||0), 0);
+    const custIds   = [...new Set(bills.map(b=>b.customer_id))];
+
+    const fmt = v => v >= 1e6 ? `${(v/1e6).toFixed(1)}M` : v >= 1e3 ? `${(v/1e3).toFixed(1)}K` : v.toFixed(0);
+
+    document.getElementById("kpi_revenue").textContent   = `₹${fmt(revenue)}`;
+    document.getElementById("kpi_bills").textContent     = bills.length;
+    document.getElementById("kpi_items_sold").textContent= itemsSold;
+    document.getElementById("kpi_customers").textContent = custIds.length;
+    document.getElementById("kpi_gst").textContent       = `₹${fmt(gstTotal)}`;
+
+    // Deltas — compare to previous equal period
+    const pBills = getPreviousPeriodBills();
+    const pRev   = pBills.reduce((s,b) => s + parseFloat(b.final_amount||0), 0);
+    setDelta("kpi_revenue_delta", revenue, pRev, "₹", true);
+    setDelta("kpi_bills_delta",   bills.length, pBills.length, "", false);
+    setDelta("kpi_gst_delta",     gstTotal, pBills.reduce((s,b)=>s+parseFloat(b.gst_amount||0),0), "₹", true);
+
+    document.getElementById("kpi_items_delta").className = "kpi-delta neu";
+    document.getElementById("kpi_items_delta").innerHTML = `<i class="fa-solid fa-boxes-stacked"></i> ${itemsSold} units`;
+    document.getElementById("kpi_cust_delta").className  = "kpi-delta neu";
+    document.getElementById("kpi_cust_delta").innerHTML  = `<i class="fa-solid fa-user-check"></i> ${custIds.length} unique`;
+}
+
+function getPreviousPeriodBills() {
+    if (currentPeriod === 'all') return [];
+    const days = parseInt(currentPeriod);
+    const end   = new Date(Date.now() - days * 864e5);
+    const start = new Date(Date.now() - days * 2 * 864e5);
+    return allBills.filter(b => { const d = new Date(b.bill_date||b.created_at); return d>=start && d<end; });
+}
+
+function setDelta(id, curr, prev, prefix, money) {
+    const el = document.getElementById(id);
+    if (prev === 0) { el.className="kpi-delta neu"; el.innerHTML=`<i class="fa-solid fa-minus"></i> No prev data`; return; }
+    const pct = ((curr - prev) / prev * 100).toFixed(1);
+    const up  = curr >= prev;
+    el.className = `kpi-delta ${up?'up':'down'}`;
+    const fmt = v => money ? `₹${v>=1e3?(v/1e3).toFixed(1)+'K':v.toFixed(0)}` : v;
+    el.innerHTML = `<i class="fa-solid fa-arrow-${up?'up':'down'}"></i> ${Math.abs(pct)}% vs prev period`;
+}
+
+// ── Revenue Chart ──
+function renderRevenueChart(bills) {
+    const ctx = document.getElementById("revenue_chart").getContext("2d");
+
+    // Group by date
+    const map = {};
+    bills.forEach(b => {
+        const d = (b.bill_date||b.created_at||'').split('T')[0].split(' ')[0];
+        if (!d) return;
+        map[d] = (map[d]||0) + parseFloat(b.final_amount||0);
+    });
+
+    const sorted = Object.keys(map).sort();
+    const labels = sorted.map(d => {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+    });
+    const values = sorted.map(d => map[d]);
+
+    if (revenueChart) revenueChart.destroy();
+
+    const grad = ctx.createLinearGradient(0,0,0,250);
+    grad.addColorStop(0, "rgba(99,102,241,0.3)");
+    grad.addColorStop(1, "rgba(99,102,241,0)");
+
+    revenueChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Revenue (₹)",
+                data: values,
+                borderColor: "#6366f1",
+                backgroundColor: grad,
+                borderWidth: 2.5,
+                pointBackgroundColor: "#6366f1",
+                pointRadius: values.length > 30 ? 0 : 4,
+                pointHoverRadius: 6,
+                tension: 0.4,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "#1c1f2e",
+                    borderColor: "#262b40",
+                    borderWidth: 1,
+                    titleColor: "#94a3b8",
+                    bodyColor: "#fff",
+                    callbacks: {
+                        label: ctx => ` ₹${ctx.raw.toLocaleString('en-IN')}`
+                    }
+                }
+            },
+            scales: {
+                x: { grid:{color:"#1e2130"}, ticks:{color:"#475569",font:{size:10},maxTicksLimit:8} },
+                y: { grid:{color:"#1e2130"}, ticks:{color:"#475569",font:{size:10}, callback: v=>`₹${v>=1000?(v/1000).toFixed(0)+'k':v}`} }
+            }
+        }
+    });
+}
+
+// ── Donut chart ──
+function renderDonut(items) {
+    const ctx = document.getElementById("donut_chart").getContext("2d");
+
+    // Group by product name (top 6)
+    const map = {};
+    items.forEach(i => {
+        const name = i.product_name || "Unknown";
+        map[name] = (map[name]||0) + parseFloat(i.subtotal||0);
+    });
+    const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const labels = sorted.map(x=>x[0]);
+    const values = sorted.map(x=>x[1]);
+    const total  = values.reduce((a,b)=>a+b,0);
+    const colors = ["#6366f1","#10b981","#f59e0b","#06b6d4","#f43f5e","#8b5cf6"];
+
+    if (donutChart) donutChart.destroy();
+    if (!values.length) {
+        document.getElementById("donut_legend").innerHTML = '<div style="color:var(--muted);font-size:0.8rem;">No sales data yet</div>';
+        return;
+    }
+
+    donutChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels,
+            datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: {
+            responsive: true,
+            cutout: "68%",
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "#1c1f2e",
+                    borderColor: "#262b40",
+                    borderWidth: 1,
+                    bodyColor: "#fff",
+                    callbacks: { label: c => ` ₹${c.raw.toLocaleString('en-IN')} (${(c.raw/total*100).toFixed(1)}%)` }
+                }
+            }
+        }
+    });
+
+    document.getElementById("donut_legend").innerHTML = sorted.map((item,i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.78rem;">
+            <div style="display:flex;align-items:center;gap:7px;">
+                <span style="width:9px;height:9px;border-radius:3px;background:${colors[i]};flex-shrink:0;display:inline-block;"></span>
+                <span style="color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">${item[0]}</span>
+            </div>
+            <span style="font-family:'DM Mono',monospace;color:#fff;font-weight:600;">₹${item[1]>=1000?(item[1]/1000).toFixed(1)+'k':item[1].toFixed(0)}</span>
+        </div>
+    `).join('');
+}
+
+// ── Top Products ──
+function renderTopProducts(items) {
+    const tbody = document.getElementById("top_products_body");
+    document.getElementById("top_prod_period").textContent =
+        currentPeriod === 'all' ? 'All time' : `Last ${currentPeriod} days`;
+
+    const map = {};
+    items.forEach(i => {
+        const n = i.product_name || "Unknown";
+        if (!map[n]) map[n] = { qty: 0, rev: 0 };
+        map[n].qty += i.quantity||0;
+        map[n].rev += parseFloat(i.subtotal||0);
+    });
+
+    const sorted = Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,8);
+    const maxQty = sorted[0]?.[1]?.qty || 1;
+
+    if (!sorted.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4" style="color:var(--muted);">No sales data for this period.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = sorted.map(([name, d], i) => {
+        const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+        const pct = (d.qty/maxQty*100).toFixed(0);
+        const colors = ["#6366f1","#10b981","#f59e0b","#06b6d4","#f43f5e","#8b5cf6","#94a3b8","#64748b"];
+        return `<tr>
+            <td><span class="rank ${rankClass}">${i+1}</span></td>
+            <td>
+                <div style="font-weight:600;color:#fff;font-size:0.85rem;">${name}</div>
+                <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%;background:${colors[i]||'#6366f1'};"></div></div>
+            </td>
+            <td class="mono" style="color:var(--cyan);">${d.qty.toLocaleString()}</td>
+            <td class="mono" style="color:var(--green);font-weight:600;">₹${d.rev>=1000?(d.rev/1000).toFixed(1)+'k':d.rev.toFixed(0)}</td>
+            <td style="color:var(--muted2);font-size:0.78rem;">${pct}%</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Stock Status ──
+function renderStockStatus() {
+    const tbody = document.getElementById("stock_body");
+    if (!allProducts.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4" style="color:var(--muted);">No products found.</td></tr>`;
+        return;
+    }
+
+    const sorted = [...allProducts].sort((a,b) => a.stock_quantity - b.stock_quantity).slice(0,10);
+
+    tbody.innerHTML = sorted.map(p => {
+        const qty   = p.stock_quantity || 0;
+        const isOut = qty === 0;
+        const isLow = qty > 0 && qty <= 10;
+        const cls   = isOut ? "stock-out" : isLow ? "stock-low" : "stock-ok";
+        const dot   = isOut ? "dot-out"   : isLow ? "dot-low"   : "dot-ok";
+        const label = isOut ? "Out of Stock" : isLow ? "Low Stock" : "In Stock";
+        const val   = (qty * parseFloat(p.price||0)).toLocaleString('en-IN',{maximumFractionDigits:0});
+        return `<tr>
+            <td style="font-weight:600;color:#fff;font-size:0.84rem;">${p.product_name}</td>
+            <td class="mono" style="color:${isOut?'#ef4444':isLow?'#f59e0b':'#10b981'};font-weight:700;">${qty}</td>
+            <td><span class="${cls}"><span class="dot ${dot}"></span>${label}</span></td>
+            <td class="mono" style="color:var(--muted2);">₹${val}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Recent Sales ──
+function renderRecentSales(bills) {
+    const tbody = document.getElementById("recent_sales_body");
+    const slice = bills.slice(0, 12);
+    if (!slice.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4" style="color:var(--muted);">No sales yet.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = slice.map(b => {
+        const cust  = allCustomers.find(c=>c.customer_id===b.customer_id);
+        const name  = cust?.customer_name || `Customer #${b.customer_id}`;
+        const init  = name.charAt(0).toUpperCase();
+        const colors= ["#6366f1","#10b981","#f59e0b","#06b6d4","#f43f5e"];
+        const color = colors[b.customer_id % colors.length];
+        const date  = new Date(b.bill_date||b.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+        const itemCount = billItems.filter(i=>i.bill_id===b.bill_id).length;
+        return `<tr>
+            <td><span style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25);font-size:0.7rem;padding:2px 8px;border-radius:20px;font-family:'DM Mono',monospace;">#${b.bill_id}</span></td>
+            <td>
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="cust-avatar" style="background:${color};">${init}</div>
+                    <span style="font-weight:600;color:#fff;font-size:0.84rem;">${name}</span>
+                </div>
+            </td>
+            <td style="color:var(--muted2);">${itemCount||'—'}</td>
+            <td class="mono" style="color:var(--muted2);">₹${parseFloat(b.total_amount||0).toFixed(0)}</td>
+            <td class="mono" style="color:var(--amber);">₹${parseFloat(b.gst_amount||0).toFixed(0)}</td>
+            <td style="color:var(--muted2);font-size:0.78rem;">${date}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Top Customers ──
+function renderTopCustomers(bills) {
+    const tbody = document.getElementById("top_customers_body");
+    const map = {};
+    bills.forEach(b => {
+        if (!map[b.customer_id]) map[b.customer_id] = { bills:0, total:0 };
+        map[b.customer_id].bills++;
+        map[b.customer_id].total += parseFloat(b.final_amount||0);
+    });
+
+    const sorted = Object.entries(map).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
+    if (!sorted.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4" style="color:var(--muted);">No data.</td></tr>`;
+        return;
+    }
+
+    const colors = ["#6366f1","#10b981","#f59e0b","#06b6d4","#f43f5e","#8b5cf6","#94a3b8","#64748b"];
+    tbody.innerHTML = sorted.map(([id, d], i) => {
+        const cust  = allCustomers.find(c=>c.customer_id===parseInt(id));
+        const name  = cust?.customer_name || `Customer #${id}`;
+        const init  = name.charAt(0).toUpperCase();
+        const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+        return `<tr>
+            <td><span class="rank ${rankClass}">${i+1}</span></td>
+            <td>
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="cust-avatar" style="background:${colors[i]};font-size:0.8rem;width:28px;height:28px;border-radius:8px;">${init}</div>
+                    <div>
+                        <div style="font-weight:600;color:#fff;font-size:0.84rem;">${name}</div>
+                        <div style="font-size:0.72rem;color:var(--muted2);">${cust?.gst_number||''}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="color:var(--muted2);">${d.bills}</td>
+            <td class="mono" style="color:var(--green);font-weight:700;">₹${d.total>=1000?(d.total/1000).toFixed(1)+'k':d.total.toFixed(0)}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Expiry Alerts ──
+function renderExpiry(items) {
+    const tbody = document.getElementById("expiry_body");
+    const badge = document.getElementById("expiry_count_badge");
+    badge.textContent = items.length ? `${items.length} alert${items.length>1?'s':''}` : '';
+
+    if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4" style="color:var(--muted);"><i class="fa-solid fa-circle-check me-2" style="color:var(--green);"></i>No expiry alerts. All products are safe.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(p => {
+        const days = p.days_remaining;
+        const urgency = days <= 7
+            ? `<span style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.25);font-size:0.7rem;padding:2px 9px;border-radius:20px;font-weight:700;">🔴 Critical</span>`
+            : days <= 15
+            ? `<span style="background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25);font-size:0.7rem;padding:2px 9px;border-radius:20px;font-weight:700;">🟡 Warning</span>`
+            : `<span style="background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.25);font-size:0.7rem;padding:2px 9px;border-radius:20px;font-weight:700;">🟢 Watch</span>`;
+        const expDate = new Date(p.expiry_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+        return `<tr>
+            <td style="font-weight:600;color:#fff;">${p.product_name}</td>
+            <td style="color:var(--muted2);">${p.vendor_name||'—'}</td>
+            <td class="mono" style="color:var(--muted2);">${expDate}</td>
+            <td class="mono" style="color:${days<=7?'#ef4444':days<=15?'#f59e0b':'#10b981'};font-weight:700;">${days} days</td>
+            <td>${urgency}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Alerts ──
+function renderAlerts() {
+    const outOfStock = allProducts.filter(p=>p.stock_quantity===0).length;
+    const lowStock   = allProducts.filter(p=>p.stock_quantity>0&&p.stock_quantity<=10).length;
+    const strip      = document.getElementById("alerts_strip");
+    const txt        = document.getElementById("alerts_text");
+
+    const msgs = [];
+    if (outOfStock) msgs.push(`<strong>${outOfStock} product${outOfStock>1?'s':''}</strong> out of stock`);
+    if (lowStock)   msgs.push(`<strong>${lowStock} product${lowStock>1?'s':''}</strong> running low (≤10 units)`);
+
+    if (msgs.length) {
+        txt.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:var(--amber);"></i> &nbsp;${msgs.join(' · ')} — <a href="products.html" style="color:var(--amber);font-weight:700;">Restock now →</a>`;
+        strip.style.display = "block";
+    } else {
+        strip.style.display = "none";
+    }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

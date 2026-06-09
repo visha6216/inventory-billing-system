@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP – Billing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg:        #0e1017;
+            --surface:   #161920;
+            --card:      #1c202e;
+            --border:    #272b3a;
+            --border2:   #313654;
+            --accent:    #3b82f6;
+            --accent2:   #60a5fa;
+            --green:     #10b981;
+            --amber:     #f59e0b;
+            --red:       #ef4444;
+            --purple:    #8b5cf6;
+            --text:      #e2e8f0;
+            --muted:     #64748b;
+            --muted2:    #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface); padding: 0.75rem 2rem;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+        }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .navbar a {
+            color: var(--muted2); text-decoration: none; padding: 0.5rem 1rem;
+            font-size: 0.88rem; font-weight: 500; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .navbar a:hover, .navbar a.active { color: #fff; background: rgba(255,255,255,0.06); }
+        .btn-logout {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(239,68,68,0.08) !important; color: #f87171 !important;
+            border: 1px solid rgba(239,68,68,0.2) !important; padding: 0.45rem 1rem !important;
+            font-weight: 600 !important; font-size: 0.85rem !important;
+            border-radius: 6px !important; cursor: pointer; transition: all 0.2s !important;
+            text-decoration: none;
+        }
+        .btn-logout:hover { background: #ef4444 !important; color: #fff !important; }
+
+        /* ── Layout ── */
+        .page { display: grid; grid-template-columns: 420px 1fr; gap: 24px; padding: 24px; max-width: 1600px; margin: 0 auto; }
+
+        /* ── Cards ── */
+        .card-dark {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+        }
+        .card-header-bar {
+            padding: 18px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-header-bar h6 { font-size: 0.92rem; font-weight: 600; color: #fff; margin: 0; }
+
+        /* ── Section labels ── */
+        .sec-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--muted);
+            border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 18px 0 12px;
+        }
+
+        /* ── Form controls ── */
+        .form-control, .form-select {
+            background: #12151f; border: 1px solid var(--border2); color: #fff;
+            font-size: 0.87rem; font-family: 'Sora', sans-serif; border-radius: 8px;
+            padding: 9px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            background: #161a28; color: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        .form-select option { background: #1c202e; }
+        .lbl { font-size: 0.79rem; color: var(--muted2); font-weight: 500; margin-bottom: 5px; display: block; }
+
+        /* ── Customer select pill ── */
+        .customer-pill {
+            background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25);
+            border-radius: 10px; padding: 12px 14px; display: none;
+        }
+        .customer-pill .cname { font-weight: 600; color: #fff; font-size: 0.92rem; }
+        .customer-pill .cmeta { font-size: 0.75rem; color: var(--muted2); margin-top: 2px; }
+        .customer-pill.show { display: block; }
+
+        /* ── Product search ── */
+        .prod-search-wrap { position: relative; }
+        .prod-search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.82rem; }
+        .prod-search-wrap input { padding-left: 34px; }
+        .prod-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+            background: #1c202e; border: 1px solid var(--border2); border-radius: 10px;
+            max-height: 240px; overflow-y: auto; display: none; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+        }
+        .prod-dropdown.open { display: block; }
+        .prod-item {
+            padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+        .prod-item:last-child { border-bottom: none; }
+        .prod-item:hover { background: rgba(59,130,246,0.08); }
+        .prod-item .pname { font-weight: 600; color: #fff; font-size: 0.87rem; }
+        .prod-item .pmeta { font-size: 0.75rem; color: var(--muted2); margin-top: 2px; }
+        .prod-item .pstock-ok  { color: var(--green); }
+        .prod-item .pstock-low { color: var(--amber); }
+        .prod-item .pstock-out { color: var(--red); }
+
+        /* ── Cart ── */
+        .cart-empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.87rem; }
+        .cart-empty i { font-size: 2rem; margin-bottom: 10px; display: block; opacity: 0.4; }
+
+        .cart-item {
+            display: grid; grid-template-columns: 1fr 110px 90px 32px;
+            gap: 10px; align-items: center; padding: 12px 20px;
+            border-bottom: 1px solid var(--border); animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+        .cart-item:last-child { border-bottom: none; }
+        .ci-name { font-weight: 600; font-size: 0.87rem; color: #fff; }
+        .ci-price { font-size: 0.75rem; color: var(--muted2); font-family: 'DM Mono', monospace; }
+        .qty-control { display: flex; align-items: center; gap: 6px; }
+        .qty-btn {
+            width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2);
+            background: var(--surface); color: var(--text); font-size: 0.85rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+        }
+        .qty-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .qty-val { font-family: 'DM Mono', monospace; font-size: 0.87rem; min-width: 24px; text-align: center; }
+        .ci-total { font-family: 'DM Mono', monospace; font-size: 0.87rem; color: var(--accent2); font-weight: 600; text-align: right; }
+        .ci-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; transition: color 0.15s; }
+        .ci-del:hover { color: var(--red); }
+
+        /* ── GST Summary ── */
+        .gst-table { padding: 16px 20px; }
+        .gst-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.86rem; }
+        .gst-row .gl { color: var(--muted2); }
+        .gst-row .gv { font-family: 'DM Mono', monospace; color: var(--text); }
+        .gst-row.total-row { border-top: 1px solid var(--border2); margin-top: 8px; padding-top: 12px; }
+        .gst-row.total-row .gl { color: #fff; font-weight: 600; font-size: 0.95rem; }
+        .gst-row.total-row .gv { color: var(--green); font-size: 1.05rem; font-weight: 700; }
+
+        /* ── GST slab toggle ── */
+        .slab-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .slab-pill {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+            border: 1px solid var(--border2); background: var(--surface); color: var(--muted2);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .slab-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        /* ── Action buttons ── */
+        .btn-generate {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: none; color: #fff; font-weight: 700; font-size: 0.92rem;
+            padding: 13px 20px; border-radius: 10px; width: 100%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.2s; font-family: 'Sora', sans-serif;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+        }
+        .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none; color: #fff; font-weight: 700; font-size: 0.92rem;
+            padding: 13px 20px; border-radius: 10px; width: 100%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.2s; font-family: 'Sora', sans-serif; margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+        .btn-download { display: none; }
+        .btn-download.show { display: flex; }
+
+        /* ── Recent bills table ── */
+        .table { color: var(--text) !important; font-size: 0.84rem; margin: 0; }
+        .table th {
+            background: #1a1e2e !important; color: var(--muted) !important;
+            border-bottom: 2px solid var(--border) !important;
+            font-size: 0.7rem; letter-spacing: 0.9px; text-transform: uppercase; padding: 12px 14px;
+        }
+        .table td { background: var(--card) !important; border-bottom: 1px solid var(--border) !important; padding: 12px 14px; vertical-align: middle; }
+        .table-hover tbody tr:hover td { background: #1e2235 !important; }
+        .mono { font-family: 'DM Mono', monospace; }
+
+        /* ── Status badges ── */
+        .badge-paid    { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:0.7rem; padding:3px 9px; border-radius:20px; }
+        .badge-pending { background:rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); font-size:0.7rem; padding:3px 9px; border-radius:20px; }
+        .badge-bill    { background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:0.7rem; padding:3px 9px; border-radius:20px; font-family:'DM Mono',monospace; }
+
+        /* ── Bill success panel ── */
+        .bill-success {
+            background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 12px; padding: 20px; display: none; margin-top: 16px;
+        }
+        .bill-success.show { display: block; }
+        .bill-success .bs-id { font-family: 'DM Mono', monospace; font-size: 1.3rem; color: var(--green); font-weight: 700; }
+        .bill-success .bs-label { font-size: 0.75rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.8px; }
+
+        /* ── Toast ── */
+        .toast-notification {
+            position: fixed; bottom: 24px; right: 24px; padding: 1rem 1.5rem;
+            background: #1e293b; border-left: 4px solid var(--green); color: #fff;
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 12px; z-index: 99999;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-size: 0.9rem; font-weight: 500; font-family: 'Sora', sans-serif;
+        }
+        .toast-notification.show { transform: translateY(0); opacity: 1; }
+        .toast-notification.error { border-left-color: var(--red); }
+        .toast-notification.warning { border-left-color: var(--amber); }
+
+        /* ── Spinner ── */
+        .spin { animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+        /* ── Discount row ── */
+        .disc-row { display: flex; gap: 8px; align-items: center; }
+        .disc-row input { width: 80px; }
+        .disc-row select { width: 60px; }
+
+        @media (max-width: 1024px) {
+            .page { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html" class="active"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    </div>
+    <a href="#" class="btn-logout" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
+</nav>
+
+<!-- Page -->
+<div class="page">
+
+    <!-- ── LEFT PANEL: Bill Builder ── -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Customer Selection -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-user-circle me-2" style="color:var(--accent);"></i>Customer</h6>
+                <span id="cust_count_badge" style="font-size:0.72rem;color:var(--muted);"></span>
+            </div>
+            <div style="padding:16px;">
+                <label class="lbl">Select Customer *</label>
+                <select id="customer_select" class="form-select" onchange="onCustomerSelect()">
+                    <option value="">— Choose customer —</option>
+                </select>
+                <div class="customer-pill mt-2" id="customer_pill">
+                    <div class="cname" id="pill_name"></div>
+                    <div class="cmeta" id="pill_meta"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill Info -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-file-invoice me-2" style="color:var(--purple);"></i>Bill Details</h6>
+            </div>
+            <div style="padding:16px;">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="lbl">Bill / Invoice No.</label>
+                        <input type="text" id="bill_no" class="form-control" placeholder="Auto-generated" readonly
+                               style="font-family:'DM Mono',monospace;background:#0e1017;color:var(--accent2);">
+                    </div>
+                    <div class="col-6">
+                        <label class="lbl">Bill Date</label>
+                        <input type="date" id="bill_date" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label class="lbl">Due Date</label>
+                        <input type="date" id="due_date" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label class="lbl">Payment Mode</label>
+                        <select id="payment_mode" class="form-select">
+                            <option>Cash</option>
+                            <option>UPI</option>
+                            <option>Bank Transfer</option>
+                            <option>Cheque</option>
+                            <option>Credit</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GST Settings -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-percent me-2" style="color:var(--amber);"></i>GST Configuration</h6>
+            </div>
+            <div style="padding:16px;">
+                <label class="lbl mb-2">GST Slab</label>
+                <div class="slab-pills mb-3" id="gst_slabs">
+                    <div class="slab-pill" onclick="setGST(0)">0%</div>
+                    <div class="slab-pill" onclick="setGST(5)">5%</div>
+                    <div class="slab-pill active" onclick="setGST(18)">18%</div>
+                    <div class="slab-pill" onclick="setGST(28)">28%</div>
+                    <div class="slab-pill" onclick="setGST('custom')">Custom</div>
+                </div>
+                <div id="custom_gst_wrap" style="display:none;" class="mb-3">
+                    <label class="lbl">Custom GST %</label>
+                    <input type="number" id="custom_gst_input" class="form-control" placeholder="e.g. 12" min="0" max="100" oninput="recalc()">
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="lbl">GST Type</label>
+                        <select id="gst_type" class="form-select" onchange="recalc()">
+                            <option value="inclusive">Inclusive</option>
+                            <option value="exclusive" selected>Exclusive</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="lbl">Discount</label>
+                        <div class="disc-row">
+                            <input type="number" id="discount_val" class="form-control" placeholder="0" min="0" oninput="recalc()">
+                            <select id="discount_type" class="form-select" onchange="recalc()">
+                                <option value="pct">%</option>
+                                <option value="flat">₹</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <label class="lbl">Notes / Terms</label>
+                    <textarea id="bill_notes" class="form-control" rows="2" placeholder="Payment terms, delivery notes…" style="resize:none;"></textarea>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── RIGHT PANEL: Products + Summary ── -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Product Search -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-box me-2" style="color:var(--green);"></i>Add Products</h6>
+                <span id="cart_count" style="font-size:0.78rem;color:var(--muted);">0 items</span>
+            </div>
+            <div style="padding:16px;">
+                <div class="prod-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="prod_search" class="form-control" placeholder="Search products by name or barcode…" oninput="searchProducts()" autocomplete="off">
+                    <div class="prod-dropdown" id="prod_dropdown"></div>
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart_body">
+                <div class="cart-empty" id="cart_empty">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    Search and add products above
+                </div>
+            </div>
+        </div>
+
+        <!-- GST Summary -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-calculator me-2" style="color:var(--accent);"></i>Bill Summary</h6>
+            </div>
+            <div class="gst-table">
+                <div class="gst-row">
+                    <span class="gl">Subtotal</span>
+                    <span class="gv" id="sum_subtotal">₹0.00</span>
+                </div>
+                <div class="gst-row" id="discount_row" style="display:none;">
+                    <span class="gl">Discount</span>
+                    <span class="gv" style="color:var(--red);" id="sum_discount">-₹0.00</span>
+                </div>
+                <div class="gst-row">
+                    <span class="gl">Taxable Amount</span>
+                    <span class="gv" id="sum_taxable">₹0.00</span>
+                </div>
+                <div class="gst-row">
+                    <span class="gl" id="gst_label">GST (18%)</span>
+                    <span class="gv" id="sum_gst">₹0.00</span>
+                </div>
+                <div class="gst-row">
+                    <span class="gl">CGST (<span id="cgst_pct">9</span>%)</span>
+                    <span class="gv mono" id="sum_cgst">₹0.00</span>
+                </div>
+                <div class="gst-row">
+                    <span class="gl">SGST (<span id="sgst_pct">9</span>%)</span>
+                    <span class="gv mono" id="sum_sgst">₹0.00</span>
+                </div>
+                <div class="gst-row total-row">
+                    <span class="gl">Grand Total</span>
+                    <span class="gv" id="sum_total">₹0.00</span>
+                </div>
+            </div>
+
+            <div style="padding:0 16px 16px;">
+                <!-- Bill success panel -->
+                <div class="bill-success" id="bill_success">
+                    <div class="bs-label">Bill Generated Successfully</div>
+                    <div class="bs-id mt-1" id="success_bill_id">#0000</div>
+                    <div style="font-size:0.78rem;color:var(--muted2);margin-top:4px;" id="success_total"></div>
+                </div>
+
+                <button class="btn-generate mt-3" id="btn_generate" onclick="generateBill()">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Generate Bill
+                </button>
+                <button class="btn-download" id="btn_download" onclick="downloadPDF()">
+                    <i class="fa-solid fa-file-pdf"></i> Download GST Invoice (PDF)
+                </button>
+                <button class="btn btn-outline-secondary w-100 mt-2" style="font-size:0.85rem;border-radius:10px;" onclick="resetBill()">
+                    <i class="fa-solid fa-rotate-left me-2"></i>New Bill
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Bills -->
+        <div class="card-dark">
+            <div class="card-header-bar">
+                <h6><i class="fa-solid fa-clock-rotate-left me-2" style="color:var(--purple);"></i>Recent Bills</h6>
+                <button class="btn btn-sm btn-outline-secondary" style="font-size:0.75rem;" onclick="loadRecentBills()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Bill #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>GST</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th class="text-center">PDF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent_bills_body">
+                        <tr><td colspan="7" class="text-center py-4" style="color:var(--muted);">
+                            <span class="spin"><i class="fa-solid fa-circle-notch"></i></span> Loading…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = "http://127.0.0.1:5000";
+
+// ── State ──
+let cart       = [];
+let allProducts = [];
+let customers   = [];
+let gstRate     = 18;
+let lastBillId  = null;
+let lastBillData = null;
+
+// ── Auth ──
+function getToken() { return localStorage.getItem("auth_token") || ""; }
+function authHeaders() { return { "Content-Type": "application/json", "Authorization": "Bearer " + getToken() }; }
+function logout() { localStorage.removeItem("auth_token"); window.location.href = "index.html"; }
+
+// ── Toast ──
+function showToast(msg, type = "success") {
+    const old = document.querySelector('.toast-notification');
+    if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = `toast-notification ${type}`;
+    const icons = { success:"fa-circle-check", error:"fa-circle-exclamation", warning:"fa-triangle-exclamation" };
+    const colors = { success:"#10b981", error:"#ef4444", warning:"#f59e0b" };
+    t.innerHTML = `<i class="fa-solid ${icons[type]||icons.success}" style="color:${colors[type]||colors.success};font-size:1.1rem;"></i> ${msg}`;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 50);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+// ── Init ──
+document.addEventListener("DOMContentLoaded", () => {
+    if (!getToken()) { window.location.href = "index.html"; return; }
+    setDefaultDates();
+    generateBillNo();
+    loadCustomers();
+    loadProducts();
+    loadRecentBills();
+});
+
+function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const due   = new Date(Date.now() + 30*864e5).toISOString().split('T')[0];
+    document.getElementById("bill_date").value = today;
+    document.getElementById("due_date").value  = due;
+}
+
+function generateBillNo() {
+    const ts = Date.now().toString().slice(-6);
+    document.getElementById("bill_no").value = `INV-${ts}`;
+}
+
+// ── Customers ──
+function loadCustomers() {
+    fetch(`${API_BASE_URL}/customers`, { headers: { "Authorization": "Bearer " + getToken() } })
+    .then(r => r.json())
+    .then(data => {
+        customers = data;
+        const sel = document.getElementById("customer_select");
+        sel.innerHTML = '<option value="">— Choose customer —</option>';
+        data.forEach(c => {
+            sel.innerHTML += `<option value="${c.customer_id}"
+                data-name="${c.customer_name}"
+                data-gst="${c.gst_number || ''}"
+                data-phone="${c.phone || ''}"
+                data-city="${c.city || ''}"
+                data-state="${c.state || ''}">
+                ${c.customer_name}${c.gst_number ? ' · ' + c.gst_number : ''}
+            </option>`;
+        });
+        document.getElementById("cust_count_badge").textContent = `${data.length} customers`;
+    })
+    .catch(() => showToast("Failed to load customers", "error"));
+}
+
+function onCustomerSelect() {
+    const sel  = document.getElementById("customer_select");
+    const opt  = sel.options[sel.selectedIndex];
+    const pill = document.getElementById("customer_pill");
+
+    if (!sel.value) { pill.classList.remove("show"); return; }
+
+    document.getElementById("pill_name").textContent = opt.dataset.name;
+    const meta = [opt.dataset.gst ? "GST: " + opt.dataset.gst : "", opt.dataset.phone, [opt.dataset.city, opt.dataset.state].filter(Boolean).join(", ")].filter(Boolean).join("  ·  ");
+    document.getElementById("pill_meta").textContent = meta;
+    pill.classList.add("show");
+}
+
+// ── Products ──
+function loadProducts() {
+    fetch(`${API_BASE_URL}/products`, { headers: { "Authorization": "Bearer " + getToken() } })
+    .then(r => r.json())
+    .then(data => { allProducts = data; })
+    .catch(() => {});
+}
+
+function searchProducts() {
+    const q   = document.getElementById("prod_search").value.trim().toLowerCase();
+    const dd  = document.getElementById("prod_dropdown");
+    if (!q) { dd.classList.remove("open"); return; }
+
+    const matches = allProducts.filter(p =>
+        p.product_name.toLowerCase().includes(q) ||
+        (p.barcode && p.barcode.toLowerCase().includes(q))
+    ).slice(0, 8);
+
+    if (!matches.length) {
+        dd.innerHTML = `<div class="prod-item"><span class="pname" style="color:var(--muted);">No products found</span></div>`;
+    } else {
+        dd.innerHTML = matches.map(p => {
+            const stockClass = p.stock_quantity > 10 ? "pstock-ok" : p.stock_quantity > 0 ? "pstock-low" : "pstock-out";
+            const stockLabel = p.stock_quantity > 0 ? `${p.stock_quantity} in stock` : "Out of stock";
+            return `<div class="prod-item" onclick="addToCart(${p.product_id})">
+                <div class="pname">${p.product_name}</div>
+                <div class="pmeta">
+                    ₹${parseFloat(p.price).toFixed(2)}
+                    &nbsp;·&nbsp;
+                    <span class="${stockClass}">${stockLabel}</span>
+                    ${p.barcode ? `&nbsp;·&nbsp;<span style="font-family:'DM Mono',monospace;font-size:0.72rem;">${p.barcode}</span>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    dd.classList.add("open");
+}
+
+document.addEventListener("click", e => {
+    if (!e.target.closest(".prod-search-wrap")) {
+        document.getElementById("prod_dropdown").classList.remove("open");
+    }
+});
+
+function addToCart(productId) {
+    const p = allProducts.find(x => x.product_id === productId);
+    if (!p) return;
+    if (p.stock_quantity <= 0) { showToast(`"${p.product_name}" is out of stock.`, "error"); return; }
+
+    const existing = cart.find(c => c.product_id === productId);
+    if (existing) {
+        if (existing.qty >= p.stock_quantity) { showToast("Not enough stock.", "warning"); return; }
+        existing.qty++;
+    } else {
+        cart.push({ product_id: p.product_id, name: p.product_name, price: parseFloat(p.price), qty: 1, stock: p.stock_quantity });
+    }
+
+    document.getElementById("prod_search").value = "";
+    document.getElementById("prod_dropdown").classList.remove("open");
+    renderCart();
+    recalc();
+}
+
+function changeQty(productId, delta) {
+    const item = cart.find(c => c.product_id === productId);
+    if (!item) return;
+    item.qty = Math.max(1, Math.min(item.qty + delta, item.stock));
+    renderCart();
+    recalc();
+}
+
+function removeFromCart(productId) {
+    cart = cart.filter(c => c.product_id !== productId);
+    renderCart();
+    recalc();
+}
+
+function renderCart() {
+    const body  = document.getElementById("cart_body");
+    const empty = document.getElementById("cart_empty");
+    document.getElementById("cart_count").textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+
+    if (!cart.length) {
+        body.innerHTML = '';
+        body.appendChild(empty);
+        empty.style.display = 'block';
+        return;
+    }
+
+    body.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <div>
+                <div class="ci-name">${item.name}</div>
+                <div class="ci-price">₹${item.price.toFixed(2)} each</div>
+            </div>
+            <div class="qty-control">
+                <button class="qty-btn" onclick="changeQty(${item.product_id}, -1)"><i class="fa-solid fa-minus" style="font-size:0.7rem;"></i></button>
+                <span class="qty-val">${item.qty}</span>
+                <button class="qty-btn" onclick="changeQty(${item.product_id}, 1)"><i class="fa-solid fa-plus" style="font-size:0.7rem;"></i></button>
+            </div>
+            <div class="ci-total">₹${(item.price * item.qty).toFixed(2)}</div>
+            <button class="ci-del" onclick="removeFromCart(${item.product_id})"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    `).join('');
+}
+
+// ── GST ──
+function setGST(rate) {
+    document.querySelectorAll(".slab-pill").forEach(p => p.classList.remove("active"));
+    event.target.classList.add("active");
+    const customWrap = document.getElementById("custom_gst_wrap");
+    if (rate === 'custom') {
+        customWrap.style.display = "block";
+        gstRate = parseFloat(document.getElementById("custom_gst_input").value) || 0;
+    } else {
+        customWrap.style.display = "none";
+        gstRate = rate;
+    }
+    recalc();
+}
+
+function recalc() {
+    const customInput = document.getElementById("custom_gst_input");
+    if (document.getElementById("custom_gst_wrap").style.display !== "none") {
+        gstRate = parseFloat(customInput.value) || 0;
+    }
+
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+    // Discount
+    const dVal  = parseFloat(document.getElementById("discount_val").value) || 0;
+    const dType = document.getElementById("discount_type").value;
+    const discountAmt = dType === "pct" ? subtotal * dVal / 100 : dVal;
+    const discRow = document.getElementById("discount_row");
+    discRow.style.display = dVal > 0 ? "flex" : "none";
+    document.getElementById("sum_discount").textContent = `-₹${discountAmt.toFixed(2)}`;
+
+    const taxable = Math.max(0, subtotal - discountAmt);
+
+    // GST
+    const gstType = document.getElementById("gst_type").value;
+    let gstAmt, finalTotal;
+    if (gstType === "inclusive") {
+        gstAmt   = taxable - (taxable / (1 + gstRate / 100));
+        finalTotal = taxable;
+    } else {
+        gstAmt   = taxable * gstRate / 100;
+        finalTotal = taxable + gstAmt;
+    }
+    const cgst = gstAmt / 2;
+    const sgst = gstAmt / 2;
+    const half = gstRate / 2;
+
+    document.getElementById("sum_subtotal").textContent = `₹${subtotal.toFixed(2)}`;
+    document.getElementById("sum_taxable").textContent  = `₹${taxable.toFixed(2)}`;
+    document.getElementById("gst_label").textContent    = `GST (${gstRate}%)`;
+    document.getElementById("sum_gst").textContent      = `₹${gstAmt.toFixed(2)}`;
+    document.getElementById("cgst_pct").textContent     = half;
+    document.getElementById("sgst_pct").textContent     = half;
+    document.getElementById("sum_cgst").textContent     = `₹${cgst.toFixed(2)}`;
+    document.getElementById("sum_sgst").textContent     = `₹${sgst.toFixed(2)}`;
+    document.getElementById("sum_total").textContent    = `₹${finalTotal.toFixed(2)}`;
+}
+
+// ── Generate Bill ──
+function generateBill() {
+    const customerId = document.getElementById("customer_select").value;
+    if (!customerId) { showToast("Please select a customer.", "error"); return; }
+    if (!cart.length) { showToast("Add at least one product.", "error"); return; }
+
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const dVal     = parseFloat(document.getElementById("discount_val").value) || 0;
+    const dType    = document.getElementById("discount_type").value;
+    const discountAmt = dType === "pct" ? subtotal * dVal / 100 : dVal;
+    const taxable  = Math.max(0, subtotal - discountAmt);
+    const gstType  = document.getElementById("gst_type").value;
+    let gstAmt, finalTotal;
+    if (gstType === "inclusive") {
+        gstAmt = taxable - (taxable / (1 + gstRate / 100));
+        finalTotal = taxable;
+    } else {
+        gstAmt = taxable * gstRate / 100;
+        finalTotal = taxable + gstAmt;
+    }
+
+    const payload = {
+        customer_id:  parseInt(customerId),
+        items:        cart.map(i => ({ product_id: i.product_id, quantity: i.qty })),
+        gst_rate:     gstRate,
+        gst_type:     gstType,
+        discount_amt: discountAmt,
+        payment_mode: document.getElementById("payment_mode").value,
+        bill_date:    document.getElementById("bill_date").value,
+        due_date:     document.getElementById("due_date").value,
+        notes:        document.getElementById("bill_notes").value,
+    };
+
+    const btn = document.getElementById("btn_generate");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spin"><i class="fa-solid fa-circle-notch"></i></span> Generating…`;
+
+    fetch(`${API_BASE_URL}/bill`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(data => {
+        lastBillId = data.bill_id;
+
+        // Store full bill data for PDF generation
+        const sel = document.getElementById("customer_select");
+        const opt = sel.options[sel.selectedIndex];
+        lastBillData = {
+            bill_id:      data.bill_id,
+            bill_no:      document.getElementById("bill_no").value,
+            bill_date:    document.getElementById("bill_date").value,
+            due_date:     document.getElementById("due_date").value,
+            payment_mode: document.getElementById("payment_mode").value,
+            notes:        document.getElementById("bill_notes").value,
+            customer_name: opt.dataset.name,
+            customer_gst:  opt.dataset.gst,
+            customer_phone: opt.dataset.phone,
+            customer_city:  opt.dataset.city,
+            customer_state: opt.dataset.state,
+            items:        cart.map(i => ({ ...i })),
+            subtotal, discountAmt, taxable,
+            gst_rate: gstRate, gst_type: gstType,
+            gstAmt, cgst: gstAmt/2, sgst: gstAmt/2, finalTotal
+        };
+
+        document.getElementById("success_bill_id").textContent = `#${data.bill_id} — ${document.getElementById("bill_no").value}`;
+        document.getElementById("success_total").textContent   = `Grand Total: ₹${finalTotal.toFixed(2)} · GST: ₹${gstAmt.toFixed(2)}`;
+        document.getElementById("bill_success").classList.add("show");
+        document.getElementById("btn_download").classList.add("show");
+
+        showToast(`Bill #${data.bill_id} generated successfully!`);
+        loadRecentBills();
+    })
+    .catch(async err => {
+        let msg = "Failed to generate bill.";
+        try { const j = await err.json(); msg = j.error || msg; } catch(e) {}
+        showToast(msg, "error");
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-file-invoice-dollar"></i> Generate Bill`;
+    });
+}
+
+// ── PDF Generation ──
+async function downloadPDF() {
+    if (!lastBillData) return;
+    const b = lastBillData;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const W = 595, margin = 40;
+
+    // ── Header block ──
+    doc.setFillColor(15, 76, 129);
+    doc.rect(0, 0, W, 80, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("TAX INVOICE", margin, 30);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("GST Invoice — India", margin, 46);
+    doc.text(`Invoice No: ${b.bill_no}`, margin, 60);
+    doc.text(`Bill ID: #${b.bill_id}`, margin, 72);
+
+    // Right side header info
+    doc.setFontSize(9);
+    doc.text(`Date: ${b.bill_date}`, W - margin, 46, { align: "right" });
+    doc.text(`Due: ${b.due_date}`, W - margin, 60, { align: "right" });
+    doc.text(`Mode: ${b.payment_mode}`, W - margin, 72, { align: "right" });
+
+    let y = 100;
+
+    // ── Customer box ──
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, W - margin*2, 80, 4, 4, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(30, 41, 59);
+    doc.text("Bill To:", margin + 14, y + 18);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(b.customer_name, margin + 14, y + 34);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    if (b.customer_gst) doc.text(`GST: ${b.customer_gst}`, margin + 14, y + 48);
+    if (b.customer_phone) doc.text(`Phone: ${b.customer_phone}`, margin + 14, y + 60);
+    const loc = [b.customer_city, b.customer_state].filter(Boolean).join(", ");
+    if (loc) doc.text(loc, margin + 14, y + 72);
+
+    y += 96;
+
+    // ── Items table header ──
+    doc.setFillColor(217, 234, 247);
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(margin, y, W - margin*2, 24, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(30, 41, 59);
+    doc.text("#", margin + 8, y + 15);
+    doc.text("Product", margin + 30, y + 15);
+    doc.text("Qty", margin + 300, y + 15, { align: "center" });
+    doc.text("Rate", margin + 370, y + 15, { align: "right" });
+    doc.text("Amount", W - margin - 10, y + 15, { align: "right" });
+    y += 24;
+
+    // ── Items rows ──
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    b.items.forEach((item, idx) => {
+        const rowBg = idx % 2 === 0 ? [255,255,255] : [248,250,252];
+        doc.setFillColor(...rowBg);
+        doc.rect(margin, y, W - margin*2, 22, "F");
+        doc.setTextColor(30, 41, 59);
+        doc.text(String(idx + 1), margin + 8, y + 14);
+        doc.text(item.name, margin + 30, y + 14);
+        doc.text(String(item.qty), margin + 300, y + 14, { align: "center" });
+        doc.text(`₹${item.price.toFixed(2)}`, margin + 370, y + 14, { align: "right" });
+        doc.text(`₹${(item.price * item.qty).toFixed(2)}`, W - margin - 10, y + 14, { align: "right" });
+        y += 22;
+    });
+
+    y += 10;
+    doc.setDrawColor(203, 213, 225);
+    doc.line(margin, y, W - margin, y);
+    y += 16;
+
+    // ── GST Summary box ──
+    const boxH = 110;
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(W - margin - 200, y, 200, boxH, 4, 4, "FD");
+
+    const bx = W - margin - 190;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+
+    const rows = [
+        ["Subtotal",          `₹${b.subtotal.toFixed(2)}`],
+        ["Discount",          `-₹${b.discountAmt.toFixed(2)}`],
+        ["Taxable Amount",    `₹${b.taxable.toFixed(2)}`],
+        [`CGST (${b.gst_rate/2}%)`, `₹${b.cgst.toFixed(2)}`],
+        [`SGST (${b.gst_rate/2}%)`, `₹${b.sgst.toFixed(2)}`],
+    ];
+    rows.forEach((r, i) => {
+        doc.setTextColor(100, 116, 139);
+        doc.text(r[0], bx, y + 16 + i * 14);
+        doc.setTextColor(30, 41, 59);
+        doc.text(r[1], W - margin - 10, y + 16 + i * 14, { align: "right" });
+    });
+
+    // Grand total
+    doc.setFillColor(15, 76, 129);
+    doc.rect(W - margin - 200, y + boxH - 26, 200, 26, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Grand Total", bx, y + boxH - 10);
+    doc.text(`₹${b.finalTotal.toFixed(2)}`, W - margin - 10, y + boxH - 10, { align: "right" });
+
+    y += boxH + 20;
+
+    // ── GST type note ──
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`* GST is ${b.gst_type} at ${b.gst_rate}%. CGST + SGST split equally.`, margin, y);
+    y += 16;
+
+    // ── Notes ──
+    if (b.notes) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(30, 41, 59);
+        doc.text("Notes / Terms:", margin, y);
+        y += 13;
+        doc.setTextColor(100, 116, 139);
+        const lines = doc.splitTextToSize(b.notes, W - margin*2);
+        doc.text(lines, margin, y);
+        y += lines.length * 12 + 10;
+    }
+
+    // ── Footer ──
+    doc.setDrawColor(203, 213, 225);
+    doc.line(margin, 800, margin + 140, 800);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(30, 41, 59);
+    doc.text("Authorized Signature", margin, 815);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Thank you for your business!", margin, 828);
+    doc.text("Generated by ERP System", W - margin, 828, { align: "right" });
+
+    doc.save(`Invoice_${b.bill_no}_${b.customer_name.replace(/\s+/g,'-')}.pdf`);
+    showToast("PDF downloaded successfully!");
+}
+
+// ── Recent bills ──
+function loadRecentBills() {
+    const tbody = document.getElementById("recent_bills_body");
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-3" style="color:var(--muted);">
+        <span class="spin"><i class="fa-solid fa-circle-notch"></i></span> Loading…
+    </td></tr>`;
+
+    fetch(`${API_BASE_URL}/bill-history?limit=8&page=1`, {
+        headers: { "Authorization": "Bearer " + getToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        const bills = data.bills || data;
+        if (!bills.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4" style="color:var(--muted);">No bills yet.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = bills.map(b => {
+            const custName = customers.find(c => c.customer_id === b.customer_id)?.customer_name || `#${b.customer_id}`;
+            const date = b.bill_date ? new Date(b.bill_date).toLocaleDateString('en-IN') : (b.created_at ? new Date(b.created_at).toLocaleDateString('en-IN') : '—');
+            return `<tr>
+                <td><span class="badge-bill">#${b.bill_id}</span></td>
+                <td style="font-weight:600;color:#fff;">${custName}</td>
+                <td class="mono" style="color:var(--muted2);">₹${parseFloat(b.total_amount||0).toFixed(2)}</td>
+                <td class="mono" style="color:var(--amber);">₹${parseFloat(b.gst_amount||0).toFixed(2)}</td>
+                <td class="mono" style="color:var(--green);font-weight:700;">₹${parseFloat(b.final_amount||0).toFixed(2)}</td>
+                <td style="color:var(--muted2);font-size:0.8rem;">${date}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm" onclick="downloadBillPDF(${b.bill_id})"
+                        style="background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);font-size:0.75rem;padding:3px 10px;border-radius:6px;">
+                        <i class="fa-solid fa-file-pdf me-1"></i>PDF
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    })
+    .catch(() => {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-3" style="color:var(--red);">Failed to load bills.</td></tr>`;
+    });
+}
+
+function downloadBillPDF(billId) {
+    showToast("Fetching bill from server…");
+    // Use server-side invoice route if available
+    window.open(`${API_BASE_URL}/invoice/${billId}`, '_blank');
+}
+
+// ── Reset ──
+function resetBill() {
+    cart = [];
+    lastBillId = null;
+    lastBillData = null;
+    renderCart();
+    recalc();
+    document.getElementById("customer_select").value = "";
+    document.getElementById("customer_pill").classList.remove("show");
+    document.getElementById("bill_success").classList.remove("show");
+    document.getElementById("btn_download").classList.remove("show");
+    document.getElementById("bill_notes").value = "";
+    document.getElementById("discount_val").value = "";
+    generateBillNo();
+    setDefaultDates();
+    showToast("Ready for new bill.", "success");
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Products</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="app.js"></script>
+    <style>
+        body { background-color: #12141c; color: #e4e6eb; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .navbar { display:flex; justify-content:space-between; align-items:center;
+                  background:#1e293b; padding:.75rem 2rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1); }
+        .nav-links { display:flex; align-items:center; gap:4px; }
+        .navbar a { color:#94a3b8; text-decoration:none; padding:.55rem 1rem; font-size:.9rem;
+                    font-weight:500; border-radius:6px; display:inline-flex; align-items:center;
+                    gap:8px; transition:all .2s; }
+        .navbar a:hover, .navbar a.active { color:#fff; background:rgba(255,255,255,.07); }
+        .btn-logout { display:inline-flex; align-items:center; gap:8px;
+                      background:rgba(239,68,68,.08) !important; color:#f87171 !important;
+                      border:1px solid rgba(239,68,68,.25) !important; padding:.5rem 1rem !important;
+                      font-weight:600 !important; font-size:.88rem !important;
+                      border-radius:6px !important; cursor:pointer; transition:all .2s !important; }
+        .btn-logout:hover { background:#ef4444 !important; color:#fff !important; border-color:#ef4444 !important; }
+
+        /* Tabs */
+        .tab-bar { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+        .tab-btn { background:#1e293b; color:#94a3b8; border:1px solid #2d3142;
+                   padding:8px 20px; border-radius:6px; cursor:pointer; font-size:.88rem;
+                   font-weight:600; transition:all .2s; }
+        .tab-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+        .tab-content { display:none; }
+        .tab-content.active-tab { display:block; }
+
+        /* Cards */
+        .main-card { background:#1a1d29; border:1px solid #2d3142; border-radius:12px; }
+        .form-control, .form-select {
+            background:#222634; border:1px solid #3a3f58; color:#fff; }
+        .form-control:focus, .form-select:focus {
+            background:#25293c; color:#fff; border-color:#4e73df; box-shadow:none; }
+        .form-label { color:#cbd5e0; font-weight:500; font-size:.88rem; }
+        .id-badge { background:#25293c; color:#38bdf8; padding:3px 8px;
+                    border-radius:4px; font-family:monospace; font-size:.82rem; }
+
+        /* Table */
+        .table { color:#e4e6eb !important; }
+        .table th { background:#25293c !important; color:#fff !important;
+                    border-bottom:2px solid #2d3142 !important; font-size:.75rem;
+                    letter-spacing:.6px; text-transform:uppercase; }
+        .table td { background:#1a1d29 !important; border-bottom:1px solid #2d3142 !important; color:#e4e6eb !important; }
+        .table-hover tbody tr:hover td { background:#222634 !important; }
+
+        /* Expiry Alert Banner */
+        #expiryAlertBanner {
+            display:none; background:rgba(245,158,11,.08);
+            border:1px solid rgba(245,158,11,.3); border-radius:8px;
+            padding:12px 20px; margin-bottom:20px; font-size:.88rem; }
+
+        /* Toast */
+        .toast-notification {
+            position:fixed; bottom:24px; right:24px; padding:1rem 1.5rem;
+            background:#1e293b; border-left:4px solid #10b981; color:#fff; border-radius:6px;
+            box-shadow:0 10px 25px -5px rgba(0,0,0,.5); display:flex; align-items:center;
+            gap:12px; z-index:99999; transform:translateY(100px); opacity:0;
+            transition:all .3s cubic-bezier(.4,0,.2,1); }
+        .toast-notification.show { transform:translateY(0); opacity:1; }
+        .toast-notification.error { border-left-color:#ef4444; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html" class="active"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    </div>
+    <div>
+        <a href="#" class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</nav>
+
+<div class="container my-4">
+
+    <!-- Expiry Alert Banner -->
+    <div id="expiryAlertBanner"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-white m-0">Products & Inventory</h2>
+            <p class="m-0" style="color:#94a3b8;">Manage products, vendors, categories</p>
+        </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('tab-products')">
+            <i class="fa-solid fa-box me-1"></i> Products
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-add-product')">
+            <i class="fa-solid fa-plus me-1"></i> Add Product
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-vendors')">
+            <i class="fa-solid fa-truck me-1"></i> Vendor Master Book
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-categories')">
+            <i class="fa-solid fa-tags me-1"></i> Categories
+        </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 1: PRODUCTS TABLE                      -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="tab-products" class="tab-content" style="display:block;">
+        <div class="main-card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle m-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Product / Description</th>
+                            <th>Challan No.</th>
+                            <th>Vendor</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Expiry</th>
+                            <th>Barcode</th>
+                            <th class="pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 2: ADD PRODUCT FORM                    -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="tab-add-product" class="tab-content">
+        <div class="main-card p-4">
+            <h5 class="fw-bold text-white mb-4">
+                <i class="fa-solid fa-box-open me-2 text-primary"></i>Add New Product
+            </h5>
+            <form id="productForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Product Name *</label>
+                        <input type="text" id="name" class="form-control" placeholder="e.g., Paracetamol 500mg">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Price (₹) *</label>
+                        <input type="number" id="price" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Stock Quantity *</label>
+                        <input type="number" id="stock" class="form-control" placeholder="0">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Description</label>
+                        <input type="text" id="prod_desc" class="form-control" placeholder="Short product description">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Challan No.</label>
+                        <input type="text" id="prod_challan" class="form-control" placeholder="e.g., CH-2024-001">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Vendor</label>
+                        <select id="prod_vendor" class="form-select">
+                            <option value="">— Select Vendor —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select id="prod_category" class="form-select" onchange="onCategoryChange()">
+                            <option value="">— Select Category —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Subcategory</label>
+                        <select id="prod_subcategory" class="form-select">
+                            <option value="">— Select Subcategory —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Manufactured Date</label>
+                        <input type="date" id="prod_mfg_date" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="date" id="prod_expiry" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Arrived At (Date & Time)</label>
+                        <input type="datetime-local" id="prod_arrived_at" class="form-control">
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="button" id="productSubmitBtn" onclick="addProduct()"
+                            class="btn btn-primary fw-bold px-4">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Save Product
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 3: VENDOR MASTER BOOK                  -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="tab-vendors" class="tab-content">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="main-card p-4">
+                    <h5 class="fw-bold text-white mb-3">
+                        <i class="fa-solid fa-truck me-2 text-primary"></i>Add Vendor
+                    </h5>
+                    <div class="mb-2">
+                        <label class="form-label">Vendor Name *</label>
+                        <input type="text" id="v_name" class="form-control" placeholder="e.g., Sun Pharma Ltd">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Vendor Code *</label>
+                        <input type="text" id="v_code" class="form-control" placeholder="e.g., SUNPH-001">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Contact Person</label>
+                        <input type="text" id="v_contact" class="form-control" placeholder="e.g., Rajesh Kumar">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Phone</label>
+                        <input type="text" id="v_phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="v_email" class="form-control" placeholder="vendor@email.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="v_address" class="form-control" placeholder="City, State">
+                    </div>
+                    <button onclick="addVendor()" class="btn btn-success w-100 fw-bold">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Save Vendor
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="main-card overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">ID</th>
+                                    <th>Vendor Name</th>
+                                    <th>Code</th>
+                                    <th>Contact</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th class="pe-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendorTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- TAB 4: CATEGORY MANAGER                    -->
+    <!-- ══════════════════════════════════════════ -->
+    <div id="tab-categories" class="tab-content">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="main-card p-4 mb-3">
+                    <h5 class="fw-bold text-white mb-3">
+                        <i class="fa-solid fa-folder-plus me-2 text-primary"></i>Add Category
+                    </h5>
+                    <div class="mb-2">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" id="new_category_name" class="form-control" placeholder="e.g., Pharmaceuticals">
+                    </div>
+                    <button onclick="addCategory()" class="btn btn-primary w-100 fw-bold">
+                        <i class="fa-solid fa-plus me-2"></i>Add Category
+                    </button>
+                </div>
+                <div class="main-card p-4">
+                    <h5 class="fw-bold text-white mb-3">
+                        <i class="fa-solid fa-tag me-2 text-success"></i>Add Subcategory
+                    </h5>
+                    <div class="mb-2">
+                        <label class="form-label">Parent Category</label>
+                        <select id="sub_category_select" class="form-select">
+                            <option value="">— Select Category —</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Subcategory Name</label>
+                        <input type="text" id="new_subcategory_name" class="form-control" placeholder="e.g., Antibiotics">
+                    </div>
+                    <button onclick="addSubcategory()" class="btn btn-success w-100 fw-bold">
+                        <i class="fa-solid fa-plus me-2"></i>Add Subcategory
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="main-card p-4">
+                    <h5 class="fw-bold text-white mb-3">Category Tree</h5>
+                    <div id="categoryManagerList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const API_BASE_URL = "http://127.0.0.1:5000";
+function logout() { localStorage.removeItem("auth_token"); window.location.href = "index.html"; }
+function showToast(message, type = "success") {
+    const old = document.querySelector('.toast-notification');
+    if (old) old.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    const icon  = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
+    const color = type === "success" ? "#10b981" : "#ef4444";
+    toast.innerHTML = `<i class="fa-solid ${icon}" style="color:${color};font-size:1.1rem;"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 50);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
+}
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).style.display = 'block';
+    event.target.classList.add('active');
+}
+</script>
+<script src="product.js"></script>
+
+</body>
+</html>

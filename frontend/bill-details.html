@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bill Details</title>
+</head>
+<body>
+
+<h2>Bill Details</h2>
+
+<label>Enter Bill ID:</label>
+<input type="number" id="billId">
+<button onclick="getBill()">View Bill</button>
+
+<h3>Bill Info</h3>
+<pre id="billInfo"></pre>
+
+<h3>Items</h3>
+<pre id="items"></pre>
+
+<script>
+
+function getBill() {
+
+    let billId = document.getElementById("billId").value;
+
+    fetch(`http://127.0.0.1:5000/bills/${billId}`)
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("billInfo").innerText =
+            JSON.stringify(data.bill, null, 2);
+
+        document.getElementById("items").innerText =
+            JSON.stringify(data.items, null, 2);
+
+    })
+    .catch(err => {
+        document.getElementById("billInfo").innerText =
+            "Error loading bill";
+    });
+
+}
+
+</script>
+
+</body>
+</html>

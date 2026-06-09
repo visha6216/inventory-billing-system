@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Customers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #12141c; color: #e4e6eb; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+        /* ── Navbar ── */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: #1e293b; padding: 0.75rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .navbar a {
+            color: #94a3b8; text-decoration: none; padding: 0.55rem 1rem;
+            font-size: 0.9rem; font-weight: 500; border-radius: 6px;
+            display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .navbar a:hover, .navbar a.active { color: #fff; background-color: rgba(255,255,255,0.07); }
+        .btn-logout {
+            display: inline-flex; align-items: center; gap: 8px;
+            background-color: rgba(239,68,68,0.08) !important; color: #f87171 !important;
+            border: 1px solid rgba(239,68,68,0.25) !important;
+            padding: 0.5rem 1rem !important; font-weight: 600 !important;
+            font-size: 0.88rem !important; border-radius: 6px !important; cursor: pointer;
+            transition: all 0.2s !important; text-decoration: none;
+        }
+        .btn-logout:hover { background-color: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+
+        /* ── Layout ── */
+        .main-card { background-color: #1a1d29; border: 1px solid #2d3142; border-radius: 12px; }
+        .section-label {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: #64748b;
+            border-bottom: 1px solid #2d3142; padding-bottom: 8px; margin: 16px 0 12px;
+        }
+        .form-control, .form-select {
+            background-color: #222634; border: 1px solid #3a3f58; color: #fff; font-size: 0.88rem;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #25293c; color: #fff; border-color: #4e73df; box-shadow: none;
+        }
+        .form-select option { background-color: #1a1d29; }
+        .form-label-custom { color: #cbd5e0 !important; font-weight: 500; font-size: 0.82rem; margin-bottom: 4px; }
+
+        /* ── Table ── */
+        .table { color: #e4e6eb !important; background-color: #1a1d29 !important; font-size: 0.85rem; }
+        .table th {
+            background-color: #25293c !important; color: #94a3b8 !important;
+            border-bottom: 2px solid #2d3142 !important; font-size: 0.72rem;
+            letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;
+        }
+        .table td { background-color: #1a1d29 !important; border-bottom: 1px solid #2d3142 !important; color: #e4e6eb !important; vertical-align: middle; }
+        .table-hover tbody tr:hover td { background-color: #1e2235 !important; }
+
+        /* ── Badges ── */
+        .badge-active   { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 3px 8px; border-radius: 20px; }
+        .badge-inactive { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3);  font-size: 0.72rem; padding: 3px 8px; border-radius: 20px; }
+        .badge-type     { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 3px 8px; border-radius: 20px; }
+        .gst-code       { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #fbbf24; letter-spacing: 0.5px; }
+
+        /* ── Search bar ── */
+        .search-wrap { position: relative; }
+        .search-wrap .fa-magnifying-glass { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 0.85rem; }
+        .search-wrap input { padding-left: 36px; }
+
+        /* ── Stats ── */
+        .stat-pill {
+            background: #1e293b; border: 1px solid #2d3142; border-radius: 8px;
+            padding: 10px 18px; display: inline-flex; align-items: center; gap: 10px;
+        }
+        .stat-pill .num { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1; }
+        .stat-pill .lbl { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── Detail drawer ── */
+        .detail-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1040; }
+        .detail-overlay.open { display:block; }
+        .detail-drawer {
+            position: fixed; right: 0; top: 0; bottom: 0; width: 440px;
+            background: #1a1d29; border-left: 1px solid #2d3142;
+            z-index: 1050; overflow-y: auto; padding: 28px;
+            transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .detail-drawer.open { transform: translateX(0); }
+        .detail-field { margin-bottom: 18px; }
+        .detail-field .df-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-bottom: 4px; }
+        .detail-field .df-value { font-size: 0.95rem; color: #e4e6eb; font-weight: 500; }
+
+        /* ── Toast ── */
+        .toast-notification {
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 1rem 1.5rem; background: #1e293b;
+            border-left: 4px solid #10b981; color: #fff; border-radius: 6px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 12px; z-index: 99999;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-size: 0.92rem; font-weight: 500;
+        }
+        .toast-notification.show { transform: translateY(0); opacity: 1; }
+        .toast-notification.error { border-left-color: #ef4444; }
+        .text-white-forced { color: #ffffff !important; }
+        .text-light-muted  { color: #cbd5e0 !important; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #12141c; }
+        ::-webkit-scrollbar-thumb { background: #2d3142; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html" class="active"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    </div>
+    <div>
+        <a href="#" class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</nav>
+
+<!-- ── Page ── -->
+<div class="container-fluid px-4 my-4">
+
+    <!-- Header row -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-white-forced m-0">Customer Directory</h2>
+            <p class="text-light-muted m-0 mt-1">Manage customer accounts, GST details, and credit profiles</p>
+        </div>
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="stat-pill">
+                <i class="fa-solid fa-users" style="color:#4e73df;font-size:1.1rem;"></i>
+                <div><div class="num" id="stat_total">0</div><div class="lbl">Total</div></div>
+            </div>
+            <div class="stat-pill">
+                <i class="fa-solid fa-circle-check" style="color:#10b981;font-size:1.1rem;"></i>
+                <div><div class="num" id="stat_active">0</div><div class="lbl">Active</div></div>
+            </div>
+            <div class="stat-pill">
+                <i class="fa-solid fa-building" style="color:#f59e0b;font-size:1.1rem;"></i>
+                <div><div class="num" id="stat_gst">0</div><div class="lbl">GST Reg.</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ── LEFT: Form ── -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="card main-card p-4" style="position:sticky;top:16px;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h6 class="fw-bold m-0 text-white-forced">
+                        <i class="fa-solid fa-user-plus me-2 text-primary"></i>
+                        <span id="form_title">Add Customer</span>
+                    </h6>
+                    <button onclick="loadDemo()" class="btn btn-sm" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);font-size:0.75rem;padding:3px 10px;" title="Fill form with demo data">
+                        <i class="fa-solid fa-flask me-1"></i>Demo
+                    </button>
+                </div>
+                <p class="text-muted" style="font-size:0.78rem;margin-bottom:4px;">Fill all required (*) fields</p>
+
+                <!-- BASIC INFO -->
+                <div class="section-label"><i class="fa-solid fa-id-card me-2"></i>Basic Info</div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Full Name *</label>
+                    <input type="text" id="cust_name" class="form-control" placeholder="e.g., Rahul Sharma">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Customer Code</label>
+                    <input type="text" id="cust_code" class="form-control" placeholder="Auto-generated or manual">
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Category</label>
+                        <select id="cust_category" class="form-select" onchange="updateSubcategory()">
+                            <option value="">Select</option>
+                            <option>Retail</option>
+                            <option>Wholesale</option>
+                            <option>Distributor</option>
+                            <option>Corporate</option>
+                            <option>Government</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Sub-category</label>
+                        <select id="cust_subcategory" class="form-select">
+                            <option value="">Select category first</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Customer Type</label>
+                    <select id="cust_type" class="form-select">
+                        <option value="Regular">Regular</option>
+                        <option value="Premium">Premium</option>
+                        <option value="VIP">VIP</option>
+                        <option value="New">New</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Status</label>
+                    <select id="cust_status" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="section-label"><i class="fa-solid fa-phone me-2"></i>Contact</div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Email Address</label>
+                    <input type="email" id="cust_email" class="form-control" placeholder="name@domain.com">
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Phone *</label>
+                        <input type="text" id="cust_phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Alternate Phone</label>
+                        <input type="text" id="cust_alt_phone" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+
+                <!-- ADDRESS -->
+                <div class="section-label"><i class="fa-solid fa-location-dot me-2"></i>Address</div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">Street / Area</label>
+                    <input type="text" id="cust_address" class="form-control" placeholder="House / Street / Area">
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">City</label>
+                        <input type="text" id="cust_city" class="form-control" placeholder="Mumbai">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Pin Code</label>
+                        <input type="text" id="cust_pincode" class="form-control" placeholder="400001">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">State</label>
+                    <select id="cust_state" class="form-select">
+                        <option value="">Select State</option>
+                        <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                        <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                        <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                        <option>Himachal Pradesh</option><option>Jharkhand</option>
+                        <option>Karnataka</option><option>Kerala</option>
+                        <option>Madhya Pradesh</option><option>Maharashtra</option>
+                        <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+                        <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                        <option>Rajasthan</option><option>Sikkim</option>
+                        <option>Tamil Nadu</option><option>Telangana</option>
+                        <option>Tripura</option><option>Uttar Pradesh</option>
+                        <option>Uttarakhand</option><option>West Bengal</option>
+                        <option>Delhi</option><option>Jammu &amp; Kashmir</option>
+                    </select>
+                </div>
+
+                <!-- GST / TAX -->
+                <div class="section-label"><i class="fa-solid fa-file-invoice me-2"></i>GST / Tax Info</div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">GST Number</label>
+                    <input type="text" id="cust_gst" class="form-control" placeholder="22AAAAA0000A1Z5" maxlength="15" oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label form-label-custom">PAN Number</label>
+                    <input type="text" id="cust_pan" class="form-control" placeholder="AAAAA0000A" maxlength="10" oninput="this.value=this.value.toUpperCase()">
+                </div>
+
+                <!-- FINANCIAL -->
+                <div class="section-label"><i class="fa-solid fa-indian-rupee-sign me-2"></i>Financial</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Credit Limit (₹)</label>
+                        <input type="number" id="cust_credit_limit" class="form-control" placeholder="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label form-label-custom">Payment Terms</label>
+                        <select id="cust_payment_terms" class="form-select">
+                            <option value="Immediate">Immediate</option>
+                            <option value="Net 7">Net 7</option>
+                            <option value="Net 15">Net 15</option>
+                            <option value="Net 30">Net 30</option>
+                            <option value="Net 45">Net 45</option>
+                            <option value="Net 60">Net 60</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label form-label-custom">Notes / Remarks</label>
+                    <textarea id="cust_notes" class="form-control" rows="2" placeholder="Internal notes…"></textarea>
+                </div>
+
+                <button onclick="commitCustomer()" class="btn btn-primary w-100 fw-bold" id="cust_submit_btn">
+                    <i class="fa-solid fa-floppy-disk me-2"></i> Save Customer
+                </button>
+                <button onclick="resetForm()" class="btn btn-outline-secondary w-100 fw-semibold mt-2" id="cust_cancel_btn" style="display:none;font-size:0.88rem;">
+                    <i class="fa-solid fa-xmark me-2"></i> Cancel Edit
+                </button>
+            </div>
+        </div>
+
+        <!-- ── RIGHT: Table ── -->
+        <div class="col-xl-9 col-lg-8">
+
+            <!-- Toolbar -->
+            <div class="d-flex gap-2 mb-3 flex-wrap">
+                <div class="search-wrap flex-grow-1">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search_input" class="form-control" placeholder="Search by name, GST, phone, city…" oninput="filterCustomers()">
+                </div>
+                <select id="filter_status" class="form-select" style="width:140px;" onchange="filterCustomers()">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+                <select id="filter_category" class="form-select" style="width:155px;" onchange="filterCustomers()">
+                    <option value="">All Categories</option>
+                    <option>Retail</option><option>Wholesale</option>
+                    <option>Distributor</option><option>Corporate</option><option>Government</option>
+                </select>
+                <button class="btn btn-outline-secondary" onclick="streamCustomerGrid()" title="Refresh">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="card main-card overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3 py-3">ID</th>
+                                <th>Name</th>
+                                <th>GST No.</th>
+                                <th>Phone</th>
+                                <th>Category</th>
+                                <th>City / State</th>
+                                <th>Credit Limit</th>
+                                <th>Status</th>
+                                <th class="pe-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer_grid_body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Detail Drawer ── -->
+<div class="detail-overlay" id="detail_overlay" onclick="closeDrawer()"></div>
+<div class="detail-drawer" id="detail_drawer">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-white m-0"><i class="fa-solid fa-user-circle me-2 text-primary"></i>Customer Profile</h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="closeDrawer()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="drawer_content"></div>
+</div>
+
+<script>
+const API_BASE_URL = "http://127.0.0.1:5000";
+let allCustomers = [];
+let editingId = null;
+
+const SUBCATEGORY_MAP = {
+    Retail:      ["Walk-in", "Online", "Franchise"],
+    Wholesale:   ["Local", "Regional", "National"],
+    Distributor: ["Primary", "Secondary", "C&F Agent"],
+    Corporate:   ["SME", "Large Enterprise", "MNC"],
+    Government:  ["Central", "State", "PSU"],
+};
+
+function logout() {
+    localStorage.removeItem("auth_token");
+    window.location.href = "index.html";
+}
+
+function showToast(message, type = "success") {
+    const old = document.querySelector('.toast-notification');
+    if (old) old.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    const icon  = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
+    const color = type === "success" ? "#10b981" : "#ef4444";
+    toast.innerHTML = `<i class="fa-solid ${icon}" style="color:${color};font-size:1.1rem;"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 50);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+}
+
+function updateSubcategory() {
+    const cat = document.getElementById("cust_category").value;
+    const sub = document.getElementById("cust_subcategory");
+    const options = SUBCATEGORY_MAP[cat] || [];
+    sub.innerHTML = options.length
+        ? options.map(o => `<option>${o}</option>`).join('')
+        : '<option value="">Select category first</option>';
+}
+
+// ── Auth helpers ──
+function getToken() {
+    return localStorage.getItem("auth_token") || "";
+}
+
+function authHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getToken()
+    };
+}
+
+function checkAuth() {
+    if (!getToken()) {
+        showToast("Session expired. Redirecting to login…", "error");
+        setTimeout(() => window.location.href = "index.html", 1500);
+        return false;
+    }
+    return true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (checkAuth()) streamCustomerGrid();
+});
+
+function streamCustomerGrid() {
+    const tbody = document.getElementById("customer_grid_body");
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted bg-transparent">
+        <div class="spinner-border spinner-border-sm text-primary me-2"></div>Loading customers…
+    </td></tr>`;
+
+    fetch(`${API_BASE_URL}/customers`, {
+        headers: { "Authorization": "Bearer " + getToken() }
+    })
+    .then(res => res.json())
+    .then(customers => {
+        allCustomers = customers;
+        updateStats(customers);
+        renderTable(customers);
+    })
+    .catch(() => {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-danger bg-transparent">
+            <i class="fa-solid fa-circle-exclamation me-2"></i>Failed to load. Is the server running?
+        </td></tr>`;
+    });
+}
+
+function updateStats(customers) {
+    document.getElementById("stat_total").textContent  = customers.length;
+    document.getElementById("stat_active").textContent = customers.filter(c => c.status === "Active").length;
+    document.getElementById("stat_gst").textContent    = customers.filter(c => c.gst_number).length;
+}
+
+function renderTable(customers) {
+    const tbody = document.getElementById("customer_grid_body");
+    tbody.innerHTML = "";
+
+    if (!customers.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted bg-transparent">No customers found.</td></tr>`;
+        return;
+    }
+
+    customers.forEach(c => {
+        const statusBadge = c.status === "Active"
+            ? `<span class="badge-active"><i class="fa-solid fa-circle" style="font-size:0.5rem;margin-right:4px;"></i>Active</span>`
+            : `<span class="badge-inactive"><i class="fa-solid fa-circle" style="font-size:0.5rem;margin-right:4px;"></i>Inactive</span>`;
+
+        const catBadge = c.category
+            ? `<span class="badge-type">${c.category}</span>` : '<span class="text-muted">—</span>';
+
+        const gstDisplay = c.gst_number
+            ? `<span class="gst-code">${c.gst_number}</span>`
+            : '<span class="text-muted" style="font-size:0.78rem;">Not Reg.</span>';
+
+        const creditDisplay = c.credit_limit
+            ? `₹${Number(c.credit_limit).toLocaleString('en-IN')}`
+            : '—';
+
+        const location = [c.city, c.state].filter(Boolean).join(', ') || '—';
+
+        tbody.innerHTML += `
+            <tr style="cursor:pointer;" onclick="openDrawer(${c.customer_id})">
+                <td class="ps-3 fw-bold text-warning">#${c.customer_id}</td>
+                <td>
+                    <div class="fw-semibold text-white">${c.customer_name}</div>
+                    <div style="font-size:0.75rem;color:#64748b;">${c.email || ''}</div>
+                </td>
+                <td>${gstDisplay}</td>
+                <td class="text-light-muted">${c.phone || '—'}</td>
+                <td>${catBadge}</td>
+                <td class="text-light-muted" style="font-size:0.83rem;">${location}</td>
+                <td class="text-light-muted" style="font-size:0.83rem;">${creditDisplay}</td>
+                <td>${statusBadge}</td>
+                <td class="text-center pe-3">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();editCustomer(${c.customer_id})" title="Edit">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();deleteCustomer(${c.customer_id},'${c.customer_name}')" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+    });
+}
+
+function filterCustomers() {
+    const q      = document.getElementById("search_input").value.toLowerCase();
+    const status = document.getElementById("filter_status").value;
+    const cat    = document.getElementById("filter_category").value;
+
+    const filtered = allCustomers.filter(c => {
+        const matchQ = !q || [c.customer_name, c.gst_number, c.phone, c.city, c.email, c.customer_code]
+            .some(v => v && v.toLowerCase().includes(q));
+        const matchS = !status || c.status === status;
+        const matchC = !cat    || c.category === cat;
+        return matchQ && matchS && matchC;
+    });
+    renderTable(filtered);
+}
+
+/* ── Drawer ── */
+function openDrawer(id) {
+    const c = allCustomers.find(x => x.customer_id === id);
+    if (!c) return;
+
+    const row = (label, value, mono) => `
+        <div class="detail-field">
+            <div class="df-label">${label}</div>
+            <div class="df-value ${mono ? 'gst-code' : ''}">${value || '—'}</div>
+        </div>`;
+
+    const statusBadge = c.status === "Active"
+        ? `<span class="badge-active">Active</span>`
+        : `<span class="badge-inactive">Inactive</span>`;
+
+    document.getElementById("drawer_content").innerHTML = `
+        <div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:#25293c;border-radius:10px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4e73df,#224abe);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;font-weight:700;flex-shrink:0;">
+                ${c.customer_name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+                <div class="fw-bold text-white" style="font-size:1.05rem;">${c.customer_name}</div>
+                <div style="font-size:0.8rem;color:#64748b;">#${c.customer_id} · ${c.customer_code || 'No Code'}</div>
+                <div class="mt-1">${statusBadge}</div>
+            </div>
+        </div>
+        <div class="section-label">Contact</div>
+        ${row('Email', c.email)}
+        ${row('Phone', c.phone)}
+        ${row('Alternate Phone', c.alt_phone)}
+        <div class="section-label">Classification</div>
+        ${row('Category', c.category)}
+        ${row('Sub-category', c.subcategory)}
+        ${row('Customer Type', c.customer_type)}
+        <div class="section-label">Address</div>
+        ${row('Street / Area', c.address)}
+        ${row('City', c.city)}
+        ${row('State', c.state)}
+        ${row('Pin Code', c.pincode)}
+        <div class="section-label">GST / Tax</div>
+        ${row('GST Number', c.gst_number, true)}
+        ${row('PAN Number', c.pan_number, true)}
+        <div class="section-label">Financial</div>
+        ${row('Credit Limit', c.credit_limit ? '₹' + Number(c.credit_limit).toLocaleString('en-IN') : '—')}
+        ${row('Payment Terms', c.payment_terms)}
+        <div class="section-label">Notes</div>
+        <div class="detail-field"><div class="df-value" style="font-size:0.88rem;color:#94a3b8;">${c.notes || 'No notes added.'}</div></div>
+        <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary btn-sm" onclick="closeDrawer();editCustomer(${c.customer_id})">
+                <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="closeDrawer();deleteCustomer(${c.customer_id},'${c.customer_name}')">
+                <i class="fa-solid fa-trash me-1"></i>Delete
+            </button>
+        </div>`;
+
+    document.getElementById("detail_overlay").classList.add("open");
+    document.getElementById("detail_drawer").classList.add("open");
+}
+
+function closeDrawer() {
+    document.getElementById("detail_overlay").classList.remove("open");
+    document.getElementById("detail_drawer").classList.remove("open");
+}
+
+/* ── Save / Update ── */
+function commitCustomer() {
+    if (!checkAuth()) return;
+    const name = document.getElementById("cust_name").value.trim();
+    const phone = document.getElementById("cust_phone").value.trim();
+
+    if (!name)  { showToast("Customer name is required.", "error"); return; }
+    if (!phone) { showToast("Phone number is required.", "error"); return; }
+
+    const gst = document.getElementById("cust_gst").value.trim();
+    // GST validation is optional — only validate if user has typed something
+    // Valid example: 27AABCU9603R1ZX  (State code 2 digits + PAN 10 chars + 1Z + 1 check digit)
+    if (gst && gst.length > 0 && gst.length !== 15) {
+        showToast("GST number must be exactly 15 characters. Leave blank if not applicable.", "error"); return;
+    }
+
+    const payload = {
+        customer_name:  name,
+        customer_code:  document.getElementById("cust_code").value.trim(),
+        email:          document.getElementById("cust_email").value.trim(),
+        phone:          phone,
+        alt_phone:      document.getElementById("cust_alt_phone").value.trim(),
+        address:        document.getElementById("cust_address").value.trim(),
+        city:           document.getElementById("cust_city").value.trim(),
+        state:          document.getElementById("cust_state").value,
+        pincode:        document.getElementById("cust_pincode").value.trim(),
+        gst_number:     gst,
+        pan_number:     document.getElementById("cust_pan").value.trim(),
+        category:       document.getElementById("cust_category").value,
+        subcategory:    document.getElementById("cust_subcategory").value,
+        customer_type:  document.getElementById("cust_type").value,
+        status:         document.getElementById("cust_status").value,
+        credit_limit:   document.getElementById("cust_credit_limit").value || 0,
+        payment_terms:  document.getElementById("cust_payment_terms").value,
+        notes:          document.getElementById("cust_notes").value.trim(),
+    };
+
+    const btn = document.getElementById("cust_submit_btn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Saving…`;
+
+    const isEdit = editingId !== null;
+    const url    = isEdit ? `${API_BASE_URL}/customers/${editingId}` : `${API_BASE_URL}/customers`;
+    const method = isEdit ? "PUT" : "POST";
+
+    fetch(url, {
+        method,
+        headers: authHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(res => { if (!res.ok) throw new Error("Server error"); return res.json(); })
+    .then(() => {
+        showToast(isEdit ? `Customer "${name}" updated!` : `Customer "${name}" added!`);
+        resetForm();
+        streamCustomerGrid();
+    })
+    .catch(() => showToast("Failed to save customer. Please try again.", "error"))
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i> Save Customer`;
+    });
+}
+
+function editCustomer(id) {
+    const c = allCustomers.find(x => x.customer_id === id);
+    if (!c) return;
+    editingId = id;
+
+    document.getElementById("form_title").textContent = "Edit Customer";
+    document.getElementById("cust_cancel_btn").style.display = "block";
+    document.getElementById("cust_submit_btn").innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i> Update Customer`;
+
+    document.getElementById("cust_name").value          = c.customer_name || "";
+    document.getElementById("cust_code").value          = c.customer_code || "";
+    document.getElementById("cust_email").value         = c.email || "";
+    document.getElementById("cust_phone").value         = c.phone || "";
+    document.getElementById("cust_alt_phone").value     = c.alt_phone || "";
+    document.getElementById("cust_address").value       = c.address || "";
+    document.getElementById("cust_city").value          = c.city || "";
+    document.getElementById("cust_pincode").value       = c.pincode || "";
+    document.getElementById("cust_gst").value           = c.gst_number || "";
+    document.getElementById("cust_pan").value           = c.pan_number || "";
+    document.getElementById("cust_credit_limit").value  = c.credit_limit || "";
+    document.getElementById("cust_notes").value         = c.notes || "";
+
+    setSelectValue("cust_state",         c.state);
+    setSelectValue("cust_category",      c.category);
+    setSelectValue("cust_type",          c.customer_type);
+    setSelectValue("cust_status",        c.status);
+    setSelectValue("cust_payment_terms", c.payment_terms);
+    updateSubcategory();
+    setSelectValue("cust_subcategory",   c.subcategory);
+
+    document.querySelector('.col-xl-3').scrollIntoView({ behavior: 'smooth' });
+}
+
+function setSelectValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el || !value) return;
+    [...el.options].forEach(o => { if (o.value === value || o.text === value) el.value = o.value; });
+}
+
+function resetForm() {
+    editingId = null;
+    document.getElementById("form_title").textContent = "Add Customer";
+    document.getElementById("cust_cancel_btn").style.display = "none";
+    document.getElementById("cust_submit_btn").innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i> Save Customer`;
+    ["cust_name","cust_code","cust_email","cust_phone","cust_alt_phone","cust_address",
+     "cust_city","cust_pincode","cust_gst","cust_pan","cust_credit_limit","cust_notes"].forEach(id => {
+        document.getElementById(id).value = "";
+    });
+    ["cust_category","cust_subcategory","cust_state"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("cust_type").value          = "Regular";
+    document.getElementById("cust_status").value        = "Active";
+    document.getElementById("cust_payment_terms").value = "Immediate";
+}
+
+function loadDemo() {
+    document.getElementById("cust_name").value         = "Rahul Sharma Traders";
+    document.getElementById("cust_code").value         = "CUST-001";
+    document.getElementById("cust_email").value        = "rahul@sharmatraders.com";
+    document.getElementById("cust_phone").value        = "+91 98765 43210";
+    document.getElementById("cust_alt_phone").value    = "+91 91234 56789";
+    document.getElementById("cust_address").value      = "Shop No. 12, Gandhi Market, Dadar";
+    document.getElementById("cust_city").value         = "Mumbai";
+    document.getElementById("cust_pincode").value      = "400014";
+    document.getElementById("cust_gst").value          = "27AABCU9603R1ZX";
+    document.getElementById("cust_pan").value          = "AABCU9603R";
+    document.getElementById("cust_credit_limit").value = "50000";
+    document.getElementById("cust_notes").value        = "Long-term wholesale client. Prefers delivery on Tuesdays.";
+
+    // Set selects
+    setSelectValue("cust_state",         "Maharashtra");
+    setSelectValue("cust_category",      "Wholesale");
+    updateSubcategory();
+    setTimeout(() => setSelectValue("cust_subcategory", "Regional"), 50);
+    setSelectValue("cust_type",          "Premium");
+    setSelectValue("cust_status",        "Active");
+    setSelectValue("cust_payment_terms", "Net 30");
+
+    showToast("Demo data loaded! Review and click Save Customer.", "success");
+}
+
+function deleteCustomer(id, name) {
+    if (!confirm(`Delete customer "${name}"? This cannot be undone.`)) return;
+    fetch(`${API_BASE_URL}/customers/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + getToken() }
+    })
+    .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+    .then(() => { showToast(`"${name}" deleted.`); streamCustomerGrid(); })
+    .catch(() => showToast("Delete failed.", "error"));
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

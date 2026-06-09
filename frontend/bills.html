@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bill History</title>
+</head>
+<body>
+
+<h2>Bill History</h2>
+
+<button onclick="loadBills()">Load Bills</button>
+
+<table border="1" width="100%" id="billTable">
+    <tr>
+        <th>Bill ID</th>
+        <th>Customer ID</th>
+        <th>Total</th>
+        <th>GST</th>
+        <th>Final Total</th>
+        <th>Date</th>
+    </tr>
+</table>
+
+<script>
+
+function loadBills() {
+    fetch("http://127.0.0.1:5000/bills")
+    .then(res => res.json())
+    .then(data => {
+
+        let table = document.getElementById("billTable");
+
+        data.forEach(bill => {
+
+            let row = table.insertRow();
+
+            row.insertCell(0).innerText = bill.bill_id;
+            row.insertCell(1).innerText = bill.customer_id;
+            row.insertCell(2).innerText = bill.total_amount;
+            row.insertCell(3).innerText = bill.gst_amount;
+            row.insertCell(4).innerText = bill.final_amount;
+            row.insertCell(5).innerText = bill.bill_date;
+
+        });
+
+    });
+}
+
+</script>
+
+</body>
+</html>

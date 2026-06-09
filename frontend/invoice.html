@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - ERP System</title>
+    <script src="app.js"></script>
+    <script>
+        checkAuthentication();
+    </script>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .invoice-body-wrapper {
+            max-width: 850px;
+            margin: 2.5rem auto;
+            padding: 3rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
+        }
+
+        /* Two-Column Flex Header Structure */
+        .invoice-header-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .company-profile h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .company-profile p, .client-details p {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .document-type-title {
+            text-align: right;
+        }
+
+        .document-type-title h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #64748b;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Client Section Block */
+        .client-billing-card {
+            margin-bottom: 2.5rem;
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border-left: 4px solid #cbd5e1;
+        }
+
+        .client-billing-card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Ledger Table Structural Rules overriding default styles cleanly */
+        .invoice-ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 3rem;
+        }
+
+        .invoice-ledger-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: #475569;
+            font-weight: 600;
+            border-bottom: 2px solid #cbd5e1;
+            background-color: #f1f5f9;
+        }
+
+        .invoice-ledger-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        /* Split Footer System: Left Summary Calculation Box vs Right Signature Area */
+        .invoice-footer-split {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 4rem;
+            page-break-inside: avoid;
+        }
+
+        /* Left Hand Aggregates Box */
+        .financial-summary-box {
+            width: 48%;
+            background-color: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+        }
+
+        .summary-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            font-size: 0.95rem;
+            color: #475569;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .summary-item-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .summary-item-row.grand-total-highlight {
+            border-top: 1px solid #cbd5e1;
+            border-bottom: none;
+            padding-top: 0.85rem;
+            margin-top: 0.4rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Right Hand Executive Authorization Block */
+        .execution-sign-box {
+            width: 45%;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 140px; /* Gives uniform spatial height mapping */
+        }
+
+        .corporate-thanks-tag {
+            font-style: italic;
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .signature-line-mark {
+            border-top: 1.5px solid #475569;
+            width: 220px;
+            padding-top: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #334155;
+            text-align: center;
+        }
+
+        /* Print Media Rule for Paper Generation */
+        @media print {
+            body { background: #fff; }
+            .invoice-body-wrapper { box-shadow: none; margin: 0; padding: 0; max-width: 100%; }
+            .navbar { display: none !important; }
+        }
+    </style>
+</head>
+<body style="background-color: #f1f5f9; margin: 0;">
+
+<div class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+        <a href="bill_history.html" class="active"><i class="fa-solid fa-history"></i> Bill History</a>
+        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    </div>
+    <div class="nav-actions">
+        <a href="#" class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="invoice-body-wrapper">
+
+    <div class="invoice-header-meta">
+        <div class="company-profile">
+            <h1>Inventory Billing System</h1>
+            <p><i class="fa-solid fa-location-dot" style="color: #64748b; margin-right: 4px;"></i> Khopoli, Maharashtra</p>
+            <p><i class="fa-solid fa-phone" style="color: #64748b; margin-right: 4px;"></i> Mobile: </p>
+        </div>
+        
+        <div class="document-type-title">
+            <h2>Tax Invoice</h2>
+            <p style="margin-top: 0.35rem;">Invoice No: <span id="invoiceNumText" style="font-weight: 700; color: #0f172a;">1</span></p>
+            <p style="font-size: 0.85rem; color: #94a3b8;" id="invoiceDateText">Date: 2026-06-03 12:19:52</p>
+        </div>
+    </div>
+
+    <div class="client-billing-card">
+        <h3>Bill To:</h3>
+        <p style="font-weight: 700; font-size: 1.05rem; color: #0f172a; margin-bottom: 0.25rem;" id="clientName">John Doe</p>
+        <p id="clientPhone">Phone: 9876543210</p>
+        <p id="clientEmail">Email: john@gmail.com</p>
+        <p id="clientAddress">Address: Mumbai</p>
+    </div>
+
+    <table class="invoice-ledger-table">
+        <thead>
+            <tr>
+                <th>Product Description</th>
+                <th style="text-align: center; width: 120px;">Quantity</th>
+                <th style="text-align: right; width: 150px;">Unit Price</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceItemsTableBody">
+            <tr>
+                <td style="font-weight: 500;">mouse</td>
+                <td style="text-align: center;">2</td>
+                <td style="text-align: right; font-weight: 500;">₹50,000.00</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 500;">Printer</td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right; font-weight: 500;">₹25,000.00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="invoice-footer-split">
+        
+        <div class="financial-summary-box">
+            <div class="summary-item-row">
+                <span>Subtotal:</span>
+                <span id="invoiceSubtotalText" style="font-weight: 600;">₹1,25,000.00</span>
+            </div>
+            <div class="summary-item-row">
+                <span>Total Amount:</span>
+                <span id="invoiceTotalText" style="font-weight: 600;">₹25,000.00</span>
+            </div>
+            <div class="summary-item-row">
+                <span>GST (18%):</span>
+                <span id="invoiceGstText" style="font-weight: 600;">₹4,500.00</span>
+            </div>
+            <div class="summary-item-row grand-total-highlight">
+                <span>Grand Total:</span>
+                <span id="invoiceGrandTotalText">₹29,500.00</span>
+            </div>
+        </div>
+
+        <div class="execution-sign-box">
+            <p class="corporate-thanks-tag">Thank you for your business!</p>
+            <div class="signature-line-mark">Authorized Signature</div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

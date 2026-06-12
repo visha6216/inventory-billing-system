@@ -29,3 +29,49 @@
 2026-06-08 14:16:05,876 - INFO - [billing_routes.py:138] - Invoice successfully instantiated: Bill ID #3 | Total: INR 17700.00 | Customer ID: 1
 2026-06-08 14:48:16,599 - INFO - [billing_routes.py:138] - Invoice successfully instantiated: Bill ID #4 | Total: INR 63720.00 | Customer ID: 1
 2026-06-08 14:49:16,928 - INFO - [billing_routes.py:138] - Invoice successfully instantiated: Bill ID #1 | Total: INR 63720.00 | Customer ID: 1
+2026-06-09 11:31:49,042 - INFO - [billing_routes.py:138] - Invoice successfully instantiated: Bill ID #2 | Total: INR 127440.00 | Customer ID: 1
+2026-06-10 10:52:25,904 - INFO - [billing_routes.py:138] - Invoice successfully instantiated: Bill ID #3 | Total: INR 29500.00 | Customer ID: 2
+2026-06-10 11:05:10,588 - CRITICAL - [billing_routes.py:156] - Bill creation error: 1054 (42S22): Unknown column 'due_date' in 'field list'
+Traceback (most recent call last):
+  File "C:\Users\NKT\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mysql\connector\connection_cext.py", line 772, in cmd_query
+    self._cmysql.query(
+    ~~~~~~~~~~~~~~~~~~^
+        query,
+        ^^^^^^
+    ...<3 lines>...
+        query_attrs=self.query_attrs,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+_mysql_connector.MySQLInterfaceError: Unknown column 'due_date' in 'field list'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\inventory-billing-system\backend\routes\billing_routes.py", line 112, in create_bill
+    cursor.execute("""
+    ~~~~~~~~~~~~~~^^^^
+        INSERT INTO bills
+        ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        bill_date, due_date, notes
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "C:\Users\NKT\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mysql\connector\cursor_cext.py", line 353, in execute
+    self._connection.cmd_query(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._stmt_partition["mappable_stmt"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        raw_as_string=self._raw_as_string,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\NKT\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mysql\connector\opentelemetry\context_propagation.py", line 97, in wrapper
+    return method(cnx, *args, **kwargs)
+  File "C:\Users\NKT\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\mysql\connector\connection_cext.py", line 781, in cmd_query
+    raise get_mysql_exception(
+        err.errno, msg=err.msg, sqlstate=err.sqlstate
+    ) from err
+mysql.connector.errors.ProgrammingError: 1054 (42S22): Unknown column 'due_date' in 'field list'

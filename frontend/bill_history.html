@@ -3,383 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP - Bill History</title>
+    <title>ERP — Bill History</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background-color: #12141c; color: #e4e6eb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        :root {
+            --bg:#0d1117; --surface:#161b22; --card:#1c2128;
+            --border:#30363d; --border2:#3d444d;
+            --accent:#2f81f7; --accent2:#58a6ff;
+            --green:#3fb950; --amber:#d29922; --red:#f85149; --purple:#a371f7;
+            --text:#e6edf3; --muted:#7d8590; --muted2:#8b949e;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; font-size:14px; }
 
-        /* ── Navbar ── */
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            background-color: #1e293b; padding: 0.75rem 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .nav-links { display: flex; align-items: center; gap: 4px; }
-        .navbar a {
-            color: #94a3b8; text-decoration: none; padding: 0.55rem 1rem;
-            font-size: 0.9rem; font-weight: 500; border-radius: 6px;
-            display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
-        }
-        .navbar a:hover, .navbar a.active { color: #fff; background-color: rgba(255,255,255,0.07); }
-        .btn-logout {
-            display: inline-flex; align-items: center; gap: 8px;
-            background-color: rgba(239,68,68,0.08) !important; color: #f87171 !important;
-            border: 1px solid rgba(239,68,68,0.25) !important;
-            padding: 0.5rem 1rem !important; font-weight: 600 !important;
-            font-size: 0.88rem !important; border-radius: 6px !important; cursor: pointer;
-            transition: all 0.2s !important; text-decoration: none;
-        }
-        .btn-logout:hover { background-color: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+        .navbar { display:flex; justify-content:space-between; align-items:center; background:var(--surface); padding:0 1.5rem; height:52px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+        .nav-brand { color:#fff; font-weight:700; font-size:0.9rem; margin-right:1.5rem; display:flex; align-items:center; gap:8px; }
+        .nav-brand .dot { width:8px; height:8px; background:var(--accent); border-radius:50%; }
+        .nav-links { display:flex; gap:2px; }
+        .navbar a { color:var(--muted2); text-decoration:none; padding:0.38rem 0.85rem; font-size:0.81rem; font-weight:500; border-radius:6px; display:inline-flex; align-items:center; gap:7px; transition:all 0.15s; }
+        .navbar a:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+        .navbar a.active { color:#fff; background:rgba(47,129,247,0.15); }
+        .navbar a.active i { color:var(--accent); }
+        .btn-logout { color:#f85149!important; border:1px solid rgba(248,81,73,0.3)!important; background:rgba(248,81,73,0.06)!important; }
+        .btn-logout:hover { background:rgba(248,81,73,0.15)!important; }
 
-        /* ── Page ── */
-        .main-card { background-color: #1a1d29; border: 1px solid #2d3142; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-        .table { color: #e4e6eb !important; background-color: #1a1d29 !important; margin-bottom: 0; }
-        .table th { background-color: #25293c !important; color: #ffffff !important; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.8px; border-bottom: 2px solid #2d3142 !important; }
-        .table td { background-color: #1a1d29 !important; color: #e4e6eb !important; border-bottom: 1px solid #2d3142 !important; padding: 1.1rem 0.75rem; }
-        .table-hover tbody tr:hover td { background-color: #222634 !important; color: #ffffff !important; }
-        .form-control { background-color: #222634; border: 1px solid #3a3f58; color: #ffffff; }
-        .form-control:focus { background-color: #222634; color: #ffffff; border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.25); }
-        .btn-primary { background-color: #4e73df; border: none; }
-        .btn-primary:hover { background-color: #3a5ec0; }
-        .btn-outline-secondary { color: #b0b3b8; border-color: #4a5568; }
-        .btn-outline-secondary:hover { background-color: #2d3142; color: #fff; }
-        .btn-download { background-color: #2ecc71; color: #fff; border: none; padding: 5px 14px; font-size: 0.8rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background .2s; }
-        .btn-download:hover { background-color: #27ae60; }
-        .btn-download:disabled { background-color: #1a7a43; cursor: not-allowed; }
-        .badge-custom { background-color: #25293c; border: 1px solid #4a5568; color: #cbd5e0; }
-        .text-neon-green { color: #2ecc71 !important; font-weight: 600; }
+        .page-wrap { padding:22px; max-width:1400px; margin:0 auto; }
+        .page-heading { font-size:1rem; font-weight:600; color:#fff; margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+        .page-heading i { color:var(--accent); font-size:0.9rem; }
+        .page-sub { font-size:0.8rem; color:var(--muted2); margin-bottom:18px; }
 
-        /* ── Toast ── */
-        .toast-notification {
-            position: fixed; bottom: 24px; right: 24px;
-            padding: 1rem 1.5rem; background: #1e293b;
-            border-left: 4px solid #10b981; color: #fff; border-radius: 6px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-            display: flex; align-items: center; gap: 12px; z-index: 99999;
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            font-family: 'Segoe UI', sans-serif; font-size: 0.92rem; font-weight: 500;
-        }
-        .toast-notification.show { transform: translateY(0); opacity: 1; }
-        .toast-notification.error { border-left-color: #ef4444; }
+        .card-d { background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+        .card-head { padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); }
+        .card-head h6 { font-size:0.82rem; font-weight:600; color:var(--text); margin:0; display:flex; align-items:center; gap:8px; }
+        .card-head h6 i { color:var(--accent); font-size:0.76rem; }
+
+        /* Filter bar */
+        .filter-bar { display:flex; gap:10px; align-items:center; padding:14px 16px; flex-wrap:wrap; }
+        .form-control-sm-d { background:#0d1117; border:1px solid var(--border2); color:var(--text); font-size:0.82rem; font-family:'Inter',sans-serif; border-radius:7px; padding:7px 11px; transition:border-color 0.15s; }
+        .form-control-sm-d:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,129,247,0.15); outline:none; background:#0d1117; color:var(--text); }
+        .form-control-sm-d::placeholder { color:var(--muted); }
+        .btn-filter { background:var(--accent); color:#fff; border:none; padding:7px 16px; border-radius:7px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:all 0.15s; }
+        .btn-filter:hover { background:#388bfd; }
+        .btn-clear  { background:rgba(255,255,255,0.05); color:var(--muted2); border:1px solid var(--border2); padding:7px 14px; border-radius:7px; font-size:0.82rem; cursor:pointer; transition:all 0.15s; }
+        .btn-clear:hover { background:rgba(255,255,255,0.08); color:var(--text); }
+
+        /* Table */
+        .tbl { width:100%; border-collapse:collapse; font-size:0.82rem; }
+        .tbl th { background:rgba(255,255,255,0.02); color:var(--muted2); font-weight:600; text-transform:uppercase; font-size:0.69rem; letter-spacing:0.7px; padding:10px 14px; border-bottom:1px solid var(--border); white-space:nowrap; }
+        .tbl td { padding:12px 14px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+        .tbl tbody tr:last-child td { border-bottom:none; }
+        .tbl tbody tr:hover td { background:rgba(255,255,255,0.02); }
+        .mono { font-family:'JetBrains Mono',monospace; font-size:0.79rem; }
+        .badge-inv { font-family:'JetBrains Mono',monospace; font-size:0.72rem; background:rgba(47,129,247,0.12); color:var(--accent2); border:1px solid rgba(47,129,247,0.25); padding:2px 7px; border-radius:4px; }
+
+        /* Stat pills */
+        .stat-bar { display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+        .stat-pill { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 16px; display:inline-flex; align-items:center; gap:10px; }
+        .stat-pill .num { font-size:1.2rem; font-weight:700; color:#fff; line-height:1; font-family:'JetBrains Mono',monospace; }
+        .stat-pill .lbl2 { font-size:0.69rem; color:var(--muted2); text-transform:uppercase; letter-spacing:0.5px; }
+
+        /* PDF button */
+        .btn-pdf { background:rgba(63,185,80,0.08); color:var(--green); border:1px solid rgba(63,185,80,0.25); border-radius:5px; padding:4px 12px; font-size:0.72rem; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.12s; display:inline-flex; align-items:center; gap:5px; }
+        .btn-pdf:hover { background:rgba(63,185,80,0.16); }
+        .btn-pdf:disabled { opacity:0.5; cursor:not-allowed; }
+
+        /* Pagination */
+        .pagination-wrap { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-top:1px solid var(--border); }
+        .page-info { font-size:0.78rem; color:var(--muted2); }
+        .page-btns { display:flex; gap:6px; }
+        .btn-page { background:rgba(255,255,255,0.05); color:var(--muted2); border:1px solid var(--border2); padding:5px 14px; border-radius:6px; font-size:0.78rem; cursor:pointer; transition:all 0.12s; }
+        .btn-page:hover:not(:disabled) { background:rgba(47,129,247,0.15); color:var(--accent2); border-color:var(--accent); }
+        .btn-page:disabled { opacity:0.4; cursor:not-allowed; }
+
+        /* Toast */
+        .toast-n { position:fixed; bottom:24px; right:24px; padding:0.85rem 1.25rem; background:var(--card); border-left:4px solid var(--green); color:var(--text); border-radius:6px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.5); display:flex; align-items:center; gap:10px; z-index:99999; transform:translateY(80px); opacity:0; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); font-size:0.85rem; font-weight:500; }
+        .toast-n.show { transform:translateY(0); opacity:1; }
+        .toast-n.error { border-left-color:var(--red); }
+        ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:var(--bg); } ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
     </style>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="nav-links">
-        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-        <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
-        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
-        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
-        <a href="bill_history.html" class="active"><i class="fa-solid fa-history"></i> Bill History</a>
-        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    <div style="display:flex;align-items:center;">
+        <div class="nav-brand"><div class="dot"></div> IBS · ERP</div>
+        <div class="nav-links">
+            <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+            <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+            <a href="bill_history.html" class="active"><i class="fa-solid fa-history"></i> Bill History</a>
+            <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        </div>
     </div>
-    <div>
-        <a href="#" class="btn-logout" onclick="logout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </a>
-    </div>
+    <a href="#" class="btn-logout navbar-link" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
 </nav>
 
-<div class="container my-5">
+<div class="page-wrap">
+    <div class="page-heading"><i class="fa-solid fa-history"></i> Bill History</div>
+    <div class="page-sub">View, filter and download past invoices.</div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-white m-0">Bill History</h2>
-            <p class="text-secondary m-0">View and download past invoices</p>
+    <div class="stat-bar">
+        <div class="stat-pill"><i class="fa-solid fa-receipt" style="color:var(--accent2);"></i><div><div class="num" id="stat_count">0</div><div class="lbl2">Bills</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-indian-rupee-sign" style="color:var(--green);"></i><div><div class="num" id="stat_revenue">₹0</div><div class="lbl2">Total Revenue</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-percent" style="color:var(--amber);"></i><div><div class="num" id="stat_gst">₹0</div><div class="lbl2">GST Collected</div></div></div>
+    </div>
+
+    <div class="card-d">
+        <div class="card-head">
+            <h6><i class="fa-solid fa-filter"></i> Filter</h6>
+        </div>
+        <div class="filter-bar">
+            <input type="number" id="search_customer_id" class="form-control-sm-d" placeholder="Customer ID" min="1" style="width:160px;">
+            <input type="text"   id="search_date"        class="form-control-sm-d" placeholder="Date (YYYY-MM-DD)" style="width:180px;">
+            <button class="btn-filter" onclick="loadBillHistory(1)"><i class="fa-solid fa-filter"></i> Apply</button>
+            <button class="btn-clear"  onclick="clearFilter()">Clear</button>
+            <span style="margin-left:auto;font-size:0.78rem;color:var(--muted2);" id="results_info"></span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Customer</th>
+                        <th>Subtotal</th>
+                        <th>GST</th>
+                        <th>Grand Total</th>
+                        <th>Date</th>
+                        <th style="text-align:right;padding-right:20px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="bill_history_body"></tbody>
+            </table>
+        </div>
+
+        <div class="pagination-wrap" id="pagination_wrap" style="display:none;">
+            <span class="page-info" id="page_info"></span>
+            <div class="page-btns" id="page_btns"></div>
         </div>
     </div>
-
-    <!-- Filter -->
-    <div class="card main-card mb-4">
-        <div class="card-body">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label for="search_customer_id" class="form-label text-white m-0">Filter by Customer ID:</label>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" id="search_customer_id" class="form-control"
-                        placeholder="Enter Customer ID (e.g. 5)" min="1">
-                </div>
-                <div class="col-auto">
-                    <button onclick="loadBillHistory(1)" class="btn btn-primary px-4">
-                        <i class="fa-solid fa-filter me-1"></i> Apply
-                    </button>
-                    <button onclick="clearFilter()" class="btn btn-dark border border-secondary px-3 text-white ms-1">Clear</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Table -->
-    <div class="card main-card">
-        <div class="card-body p-0 overflow-hidden rounded-3">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th class="ps-4 py-3" style="width:10%">Bill ID</th>
-                            <th class="py-3"      style="width:20%">Customer</th>
-                            <th class="py-3"      style="width:20%">Subtotal</th>
-                            <th class="py-3"      style="width:20%">GST (18%)</th>
-                            <th class="py-3"      style="width:15%">Grand Total</th>
-                            <th class="pe-4 py-3 text-end" style="width:15%">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bill_history_table_body"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="d-none justify-content-between align-items-center mt-4" id="pagination_wrapper">
-        <div class="small text-secondary" id="pagination_info_text"></div>
-        <div id="pagination_controls_container"></div>
-    </div>
-
 </div>
 
 <script>
 const API_BASE_URL = "http://127.0.0.1:5000";
+function getToken() { return localStorage.getItem("auth_token") || ""; }
+function authHdr() { return { "Content-Type":"application/json","Authorization":"Bearer "+getToken() }; }
+function logout() { localStorage.removeItem("auth_token"); window.location.href="index.html"; }
 
-function logout() {
-    localStorage.removeItem("auth_token");
-    window.location.href = "index.html";
+function toast(msg, type="success") {
+    const old = document.querySelector('.toast-n'); if(old) old.remove();
+    const t = document.createElement('div'); t.className=`toast-n ${type}`;
+    const ic = type==="success"?"fa-circle-check":"fa-circle-exclamation";
+    const cl = type==="success"?"var(--green)":"var(--red)";
+    t.innerHTML=`<i class="fa-solid ${ic}" style="color:${cl};"></i> ${msg}`;
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),40);
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },4000);
 }
-
-function showToast(message, type = "success") {
-    const old = document.querySelector('.toast-notification');
-    if (old) old.remove();
-    const toast = document.createElement('div');
-    toast.className = `toast-notification ${type}`;
-    const icon  = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-    const color = type === "success" ? "#10b981" : "#ef4444";
-    toast.innerHTML = `<i class="fa-solid ${icon}" style="color:${color};font-size:1.1rem;"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 50);
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
-}
+function showToast(m,t){toast(m,t);}
 
 document.addEventListener("DOMContentLoaded", () => loadBillHistory(1));
 
-function loadBillHistory(page = 1) {
-    const customerId = document.getElementById("search_customer_id").value.trim();
-    const tbody = document.getElementById("bill_history_table_body");
+function loadBillHistory(page=1) {
+    const tbody = document.getElementById("bill_history_body");
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5" style="color:var(--muted);"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Loading records…</td></tr>`;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted bg-transparent">
-        <div class="spinner-border spinner-border-sm text-primary me-2"></div>Loading records…
-    </td></tr>`;
+    const cid  = document.getElementById("search_customer_id").value.trim();
+    const params = new URLSearchParams({ page, limit:10 });
+    if (cid) params.append("customer_id", cid);
 
-    const params = new URLSearchParams({ page, limit: 10 });
-    if (customerId) params.append("customer_id", customerId);
-
-    fetch(`${API_BASE_URL}/bill-history?${params}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + (localStorage.getItem("auth_token") || "")
-        }
-    })
-    .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    fetch(`${API_BASE_URL}/bill-history?${params}`, { headers: authHdr() })
+    .then(r => { if(!r.ok) throw new Error(); return r.json(); })
     .then(data => {
-        tbody.innerHTML = "";
         const bills = data.bills || [];
-
+        updateStats(bills, data.pagination);
+        document.getElementById("results_info").textContent = bills.length ? `${bills.length} records` : "";
         if (!bills.length) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted bg-transparent">No bills found.</td></tr>`;
-            document.getElementById("pagination_wrapper").classList.add("d-none");
-            return;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5" style="color:var(--muted);">No bills found.</td></tr>`;
+            document.getElementById("pagination_wrap").style.display="none"; return;
         }
-
-        bills.forEach(bill => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td class="ps-4 fw-bold text-info">#${bill.bill_id}</td>
-                <td><span class="badge badge-custom px-3 py-2">Customer #${bill.customer_id}</span></td>
-                <td>Rs.${parseFloat(bill.total_amount).toFixed(2)}</td>
-                <td>Rs.${parseFloat(bill.gst_amount).toFixed(2)}</td>
-                <td><strong class="text-neon-green">Rs.${parseFloat(bill.final_amount).toFixed(2)}</strong></td>
-                <td class="pe-4 text-end">
-                    <button class="btn-download"
-                        onclick="downloadInvoicePDF(${bill.bill_id}, ${bill.customer_id}, this)">
-                        <i class="fa-solid fa-file-pdf me-1"></i> PDF
+        tbody.innerHTML = bills.map(b => {
+            const date = b.bill_date ? new Date(b.bill_date).toLocaleDateString('en-IN') : (b.created_at ? new Date(b.created_at).toLocaleDateString('en-IN') : '—');
+            return `<tr>
+                <td><span class="badge-inv">#${b.bill_id}</span></td>
+                <td style="font-weight:500;">Customer <span class="mono" style="color:var(--muted2);">#${b.customer_id}</span></td>
+                <td class="mono" style="color:var(--muted2);">₹${parseFloat(b.total_amount||0).toFixed(2)}</td>
+                <td class="mono" style="color:var(--amber);">₹${parseFloat(b.gst_amount||0).toFixed(2)}</td>
+                <td class="mono" style="color:var(--green);font-weight:600;">₹${parseFloat(b.final_amount||0).toFixed(2)}</td>
+                <td style="font-size:0.78rem;color:var(--muted2);">${date}</td>
+                <td style="text-align:right;padding-right:20px;">
+                    <button class="btn-pdf" onclick="downloadInvoicePDF(${b.bill_id},${b.customer_id},this)">
+                        <i class="fa-solid fa-file-pdf"></i> PDF
                     </button>
-                </td>`;
-            tbody.appendChild(row);
-        });
-
+                </td>
+            </tr>`;
+        }).join('');
         renderPagination(data.pagination);
     })
-    .catch(err => {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger bg-transparent">
-            <i class="fa-solid fa-circle-exclamation me-2"></i>Error loading data. Is the server running?
-        </td></tr>`;
+    .catch(() => {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5" style="color:var(--red);"><i class="fa-solid fa-circle-exclamation me-2"></i>Error loading data. Is the server running?</td></tr>`;
     });
 }
 
+function updateStats(bills, pagination) {
+    const count   = pagination?.total_records || bills.length;
+    const revenue = bills.reduce((s,b)=>s+parseFloat(b.final_amount||0),0);
+    const gst     = bills.reduce((s,b)=>s+parseFloat(b.gst_amount||0),0);
+    document.getElementById("stat_count").textContent   = count;
+    document.getElementById("stat_revenue").textContent = "₹"+revenue.toLocaleString('en-IN',{maximumFractionDigits:0});
+    document.getElementById("stat_gst").textContent     = "₹"+gst.toLocaleString('en-IN',{maximumFractionDigits:0});
+}
+
 async function downloadInvoicePDF(billId, customerId, btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
-
+    btn.disabled=true; btn.innerHTML=`<i class="fa-solid fa-circle-notch fa-spin"></i>`;
     try {
-        const token = localStorage.getItem("auth_token") || "";
+        const token = getToken();
         const [billRes, custRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/bill-details/${billId}`,  { headers: { "Authorization": "Bearer " + token } }),
-            fetch(`${API_BASE_URL}/customers/${customerId}`, { headers: { "Authorization": "Bearer " + token } })
+            fetch(`${API_BASE_URL}/bill-details/${billId}`, {headers:authHdr()}),
+            fetch(`${API_BASE_URL}/customers/${customerId}`, {headers:authHdr()})
         ]);
-
-        if (!billRes.ok) throw new Error(`Bill fetch failed: HTTP ${billRes.status}`);
-
+        if (!billRes.ok) throw new Error(`Bill fetch failed`);
         const billData = await billRes.json();
         const custData = custRes.ok ? await custRes.json() : {};
-        const bill   = billData.bill   || billData;
-        const items  = billData.items  || [];
-        const client = custData.customer || custData;
-
+        const bill=billData.bill||billData, items=billData.items||[], client=custData.customer||custData;
         buildJsPDF(bill, items, client);
-        showToast(`Invoice #${billId} downloaded!`);
-
-    } catch (err) {
-        showToast("Failed to generate PDF: " + err.message, "error");
+        toast(`Invoice #${billId} downloaded!`);
+    } catch(err) {
+        toast("Failed to generate PDF: "+err.message, "error");
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-file-pdf me-1"></i> PDF`;
+        btn.disabled=false; btn.innerHTML=`<i class="fa-solid fa-file-pdf"></i> PDF`;
     }
 }
 
 function buildJsPDF(bill, items, client) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    const PW = 210, M = 14, CW = PW - M * 2;
-    const setFill = (r,g,b) => doc.setFillColor(r,g,b);
-    const setDraw = (r,g,b) => doc.setDrawColor(r,g,b);
-    const setTxt  = (r,g,b) => doc.setTextColor(r,g,b);
-    const BLUE=[13,110,253], WHITE=[255,255,255], DARK=[33,37,41];
-    const LGRAY=[248,249,250], BORDER=[222,226,230], MUTED=[108,117,125];
-    let y = 0;
-
-    setFill(...BLUE); doc.rect(0,0,PW,38,"F");
-    setTxt(...WHITE); doc.setFont("helvetica","bold"); doc.setFontSize(15);
-    doc.text("INVENTORY BILLING SYSTEM", M, 13);
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit:"mm",format:"a4",orientation:"portrait"});
+    const PW=210,M=14,CW=PW-M*2;
+    const BLUE=[13,110,253],WHITE=[255,255,255],DARK=[33,37,41],LGRAY=[248,249,250],BORDER=[222,226,230],MUTED=[108,117,125];
+    let y=0;
+    doc.setFillColor(...BLUE); doc.rect(0,0,PW,38,"F");
+    doc.setTextColor(...WHITE); doc.setFont("helvetica","bold"); doc.setFontSize(15);
+    doc.text("INVENTORY BILLING SYSTEM",M,13);
     doc.setFont("helvetica","normal"); doc.setFontSize(9);
-    doc.text("Mumbai, Maharashtra", M, 20);
-    doc.text("Phone: +91 9876543210", M, 26);
-    setFill(...WHITE); setDraw(...BORDER); doc.setLineWidth(0.3);
-    doc.rect(PW-M-22,4,22,22,"FD");
-    setTxt(0,0,0); doc.setFont("helvetica","bold"); doc.setFontSize(5.5);
-    doc.text("QR CODE", PW-M-11, 16, {align:"center"});
-    y = 48;
-
-    setTxt(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(15);
-    doc.text("TAX INVOICE", M, y); y += 8;
+    doc.text("Mumbai, Maharashtra",M,20); doc.text("Phone: +91 9876543210",M,26);
+    y=48;
+    doc.setTextColor(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(15);
+    doc.text("TAX INVOICE",M,y); y+=8;
     doc.setFont("helvetica","normal"); doc.setFontSize(9.5);
-    doc.text(`Invoice No: ${bill.bill_id}`, M, y); y += 6;
-    const dateStr = new Date(bill.created_at||bill.bill_date||Date.now())
-        .toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
-    doc.text(`Date: ${dateStr}`, M, y); y += 8;
-
-    const boxH = 26;
-    setFill(...LGRAY); setDraw(...BORDER); doc.setLineWidth(0.3);
+    doc.text(`Invoice No: ${bill.bill_id}`,M,y); y+=6;
+    const dateStr = new Date(bill.created_at||bill.bill_date||Date.now()).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
+    doc.text(`Date: ${dateStr}`,M,y); y+=8;
+    const boxH=26;
+    doc.setFillColor(...LGRAY); doc.setDrawColor(...BORDER); doc.setLineWidth(0.3);
     doc.rect(M,y,CW,boxH,"FD");
-    setTxt(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    doc.text("Bill To", M+4, y+7);
-    doc.setFont("helvetica","normal"); doc.setFontSize(9);
-    const half = CW/2;
-    doc.text(`Name:  ${client.name||client.customer_name||"Valued Customer"}`, M+4, y+14);
-    doc.text(`Email: ${client.email||"-"}`, M+half+4, y+14);
-    doc.text(`Phone: ${client.phone||"-"}`, M+4, y+21);
-    doc.text(`Address: ${client.address||"Maharashtra, India"}`, M+half+4, y+21);
-    y += boxH+8;
-
-    const colW=[CW*0.55,CW*0.2,CW*0.25];
-    const colX=[M, M+colW[0], M+colW[0]+colW[1]];
-    const rowH=8;
-    setFill(...BLUE); doc.rect(M,y,CW,rowH,"F");
-    setTxt(...WHITE); doc.setFont("helvetica","bold"); doc.setFontSize(9);
-    doc.text("Product",  colX[0]+3,          y+5.5);
-    doc.text("Quantity", colX[1]+colW[1]/2,  y+5.5,{align:"center"});
-    doc.text("Price",    colX[2]+colW[2]-3,  y+5.5,{align:"right"});
-    y += rowH;
-
-    const displayItems = items.length
-        ? items
-        : [{product_name:"General Goods & Services",quantity:1,subtotal:bill.total_amount}];
-
+    doc.setTextColor(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.text("Bill To",M+4,y+7);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); const half=CW/2;
+    doc.text(`Name:  ${client.name||client.customer_name||"Valued Customer"}`,M+4,y+14);
+    doc.text(`Email: ${client.email||"-"}`,M+half+4,y+14);
+    doc.text(`Phone: ${client.phone||"-"}`,M+4,y+21);
+    doc.text(`Address: ${client.address||"Maharashtra, India"}`,M+half+4,y+21);
+    y+=boxH+8;
+    const colW=[CW*0.55,CW*0.2,CW*0.25],colX=[M,M+colW[0],M+colW[0]+colW[1]],rowH=8;
+    doc.setFillColor(...BLUE); doc.rect(M,y,CW,rowH,"F");
+    doc.setTextColor(...WHITE); doc.setFont("helvetica","bold"); doc.setFontSize(9);
+    doc.text("Product",colX[0]+3,y+5.5); doc.text("Quantity",colX[1]+colW[1]/2,y+5.5,{align:"center"}); doc.text("Price",colX[2]+colW[2]-3,y+5.5,{align:"right"});
+    y+=rowH;
+    const dispItems = items.length?items:[{product_name:"General Goods & Services",quantity:1,subtotal:bill.total_amount}];
     doc.setFont("helvetica","normal");
-    displayItems.forEach((item,i) => {
-        setFill(i%2===0?255:245, i%2===0?255:246, i%2===0?255:250);
-        doc.rect(M,y,CW,rowH,"F");
-        setDraw(...BORDER); doc.setLineWidth(0.2);
-        doc.line(M,y+rowH,M+CW,y+rowH);
-        setTxt(...DARK); doc.setFontSize(9);
-        doc.text(String(item.product_name||"-"), colX[0]+3, y+5.5);
-        doc.text(String(item.quantity), colX[1]+colW[1]/2, y+5.5,{align:"center"});
-        doc.text(`Rs.${parseFloat(item.subtotal).toFixed(2)}`, colX[2]+colW[2]-3, y+5.5,{align:"right"});
-        y += rowH;
+    dispItems.forEach((item,i)=>{
+        doc.setFillColor(i%2===0?255:245,i%2===0?255:246,i%2===0?255:250);
+        doc.rect(M,y,CW,rowH,"F"); doc.setDrawColor(...BORDER); doc.setLineWidth(0.2); doc.line(M,y+rowH,M+CW,y+rowH);
+        doc.setTextColor(...DARK); doc.setFontSize(9);
+        doc.text(String(item.product_name||"-"),colX[0]+3,y+5.5);
+        doc.text(String(item.quantity),colX[1]+colW[1]/2,y+5.5,{align:"center"});
+        doc.text(`Rs.${parseFloat(item.subtotal).toFixed(2)}`,colX[2]+colW[2]-3,y+5.5,{align:"right"});
+        y+=rowH;
     });
-    y += 6;
-
-    setTxt(...MUTED); doc.setFont("helvetica","normal"); doc.setFontSize(9);
-    doc.text("Subtotal:", PW-M-52, y);
-    setTxt(...DARK); doc.setFont("helvetica","bold");
-    doc.text(`Rs.${parseFloat(bill.total_amount).toFixed(2)}`, PW-M, y,{align:"right"});
-    y += 8;
-
-    const tBoxW=82, tBoxX=PW-M-tBoxW;
-    setFill(...LGRAY); setDraw(...BLUE); doc.setLineWidth(0.5);
+    y+=6;
+    const tBoxW=82,tBoxX=PW-M-tBoxW;
+    doc.setFillColor(...LGRAY); doc.setDrawColor(...BLUE); doc.setLineWidth(0.5);
     doc.rect(tBoxX,y,tBoxW,32,"FD");
-    const labelX=tBoxX+4, valueX=tBoxX+tBoxW-4;
-    doc.setFontSize(9);
-    setTxt(...MUTED); doc.setFont("helvetica","normal");
-    doc.text("Total Amount:", labelX, y+8);
-    setTxt(...DARK); doc.setFont("helvetica","bold");
-    doc.text(`Rs.${parseFloat(bill.total_amount).toFixed(2)}`, valueX, y+8,{align:"right"});
-    setTxt(...MUTED); doc.setFont("helvetica","normal");
-    doc.text("GST (18%):", labelX, y+16);
-    setTxt(...DARK); doc.setFont("helvetica","bold");
-    doc.text(`Rs.${parseFloat(bill.gst_amount).toFixed(2)}`, valueX, y+16,{align:"right"});
-    setDraw(...BORDER); doc.setLineWidth(0.3);
-    doc.line(tBoxX+3,y+20,tBoxX+tBoxW-3,y+20);
-    setTxt(...BLUE); doc.setFont("helvetica","bold"); doc.setFontSize(10.5);
-    doc.text("Grand Total:", labelX, y+28);
-    doc.text(`Rs.${parseFloat(bill.final_amount).toFixed(2)}`, valueX, y+28,{align:"right"});
-
-    const footerY=272;
-    setDraw(...DARK); doc.setLineWidth(0.3);
-    doc.line(M,footerY,M+52,footerY);
-    setTxt(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(9);
-    doc.text("Authorized Signature", M+26, footerY+5,{align:"center"});
-    setTxt(...MUTED); doc.setFont("helvetica","italic");
-    doc.text("Thank you for your business!", M, footerY+13);
-
+    const lX=tBoxX+4,vX=tBoxX+tBoxW-4;
+    doc.setFontSize(9); doc.setTextColor(...MUTED); doc.setFont("helvetica","normal");
+    doc.text("Total Amount:",lX,y+8); doc.setTextColor(...DARK); doc.setFont("helvetica","bold"); doc.text(`Rs.${parseFloat(bill.total_amount).toFixed(2)}`,vX,y+8,{align:"right"});
+    doc.setTextColor(...MUTED); doc.setFont("helvetica","normal"); doc.text("GST (18%):",lX,y+16); doc.setTextColor(...DARK); doc.setFont("helvetica","bold"); doc.text(`Rs.${parseFloat(bill.gst_amount).toFixed(2)}`,vX,y+16,{align:"right"});
+    doc.setDrawColor(...BORDER); doc.setLineWidth(0.3); doc.line(tBoxX+3,y+20,tBoxX+tBoxW-3,y+20);
+    doc.setTextColor(...BLUE); doc.setFont("helvetica","bold"); doc.setFontSize(10.5);
+    doc.text("Grand Total:",lX,y+28); doc.text(`Rs.${parseFloat(bill.final_amount).toFixed(2)}`,vX,y+28,{align:"right"});
+    const footerY=272; doc.setDrawColor(...DARK); doc.setLineWidth(0.3); doc.line(M,footerY,M+52,footerY);
+    doc.setTextColor(...DARK); doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.text("Authorized Signature",M+26,footerY+5,{align:"center"});
+    doc.setTextColor(...MUTED); doc.setFont("helvetica","italic"); doc.text("Thank you for your business!",M,footerY+13);
     doc.save(`Invoice_${bill.bill_id}.pdf`);
 }
 
 function renderPagination(meta) {
-    const wrapper  = document.getElementById("pagination_wrapper");
-    const infoText = document.getElementById("pagination_info_text");
-    const controls = document.getElementById("pagination_controls_container");
-    if (!meta || meta.total_pages <= 1) { wrapper.classList.add("d-none"); return; }
-    wrapper.classList.remove("d-none");
-    wrapper.classList.add("d-flex");
-    infoText.textContent = `Page ${meta.current_page} of ${meta.total_pages} · ${meta.total_records} records`;
-    controls.innerHTML = `
-        <button onclick="loadBillHistory(${meta.current_page-1})"
-            class="btn btn-sm btn-outline-secondary me-1 px-3"
-            ${meta.current_page<=1?"disabled":""}>← Previous</button>
-        <button onclick="loadBillHistory(${meta.current_page+1})"
-            class="btn btn-sm btn-outline-secondary ms-1 px-3"
-            ${meta.current_page>=meta.total_pages?"disabled":""}>Next →</button>`;
+    const wrap = document.getElementById("pagination_wrap");
+    if (!meta||meta.total_pages<=1) { wrap.style.display="none"; return; }
+    wrap.style.display="flex";
+    document.getElementById("page_info").textContent = `Page ${meta.current_page} of ${meta.total_pages} · ${meta.total_records} records`;
+    document.getElementById("page_btns").innerHTML = `
+        <button class="btn-page" onclick="loadBillHistory(${meta.current_page-1})" ${meta.current_page<=1?"disabled":""}>← Prev</button>
+        <button class="btn-page" onclick="loadBillHistory(${meta.current_page+1})" ${meta.current_page>=meta.total_pages?"disabled":""}>Next →</button>`;
 }
 
 function clearFilter() {
-    document.getElementById("search_customer_id").value = "";
+    document.getElementById("search_customer_id").value="";
+    document.getElementById("search_date").value="";
     loadBillHistory(1);
 }
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

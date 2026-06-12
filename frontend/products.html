@@ -3,126 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP - Products</title>
+    <title>ERP — Products</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #12141c; color: #e4e6eb; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .navbar { display:flex; justify-content:space-between; align-items:center;
-                  background:#1e293b; padding:.75rem 2rem; box-shadow:0 4px 6px -1px rgba(0,0,0,.1); }
-        .nav-links { display:flex; align-items:center; gap:4px; }
-        .navbar a { color:#94a3b8; text-decoration:none; padding:.55rem 1rem; font-size:.9rem;
-                    font-weight:500; border-radius:6px; display:inline-flex; align-items:center;
-                    gap:8px; transition:all .2s; }
-        .navbar a:hover, .navbar a.active { color:#fff; background:rgba(255,255,255,.07); }
-        .btn-logout { display:inline-flex; align-items:center; gap:8px;
-                      background:rgba(239,68,68,.08) !important; color:#f87171 !important;
-                      border:1px solid rgba(239,68,68,.25) !important; padding:.5rem 1rem !important;
-                      font-weight:600 !important; font-size:.88rem !important;
-                      border-radius:6px !important; cursor:pointer; transition:all .2s !important; }
-        .btn-logout:hover { background:#ef4444 !important; color:#fff !important; border-color:#ef4444 !important; }
+        :root {
+            --bg:      #0d1117;
+            --surface: #161b22;
+            --card:    #1c2128;
+            --border:  #30363d;
+            --border2: #3d444d;
+            --accent:  #2f81f7;
+            --accent2: #58a6ff;
+            --green:   #3fb950;
+            --amber:   #d29922;
+            --red:     #f85149;
+            --purple:  #a371f7;
+            --cyan:    #22d3ee;
+            --text:    #e6edf3;
+            --muted:   #7d8590;
+            --muted2:  #8b949e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; font-size: 14px; }
 
-        /* Tabs */
-        .tab-bar { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
-        .tab-btn { background:#1e293b; color:#94a3b8; border:1px solid #2d3142;
-                   padding:8px 20px; border-radius:6px; cursor:pointer; font-size:.88rem;
-                   font-weight:600; transition:all .2s; }
-        .tab-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
-        .tab-content { display:none; }
-        .tab-content.active-tab { display:block; }
+        /* ── Navbar ── */
+        .navbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 0 1.5rem; height: 52px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .nav-brand { color: #fff; font-weight: 700; font-size: 0.9rem; margin-right: 1.5rem; display: flex; align-items: center; gap: 8px; }
+        .nav-brand .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+        .nav-links { display: flex; gap: 2px; }
+        .navbar a { color: var(--muted2); text-decoration: none; padding: 0.38rem 0.85rem; font-size: 0.81rem; font-weight: 500; border-radius: 6px; display: inline-flex; align-items: center; gap: 7px; transition: all 0.15s; }
+        .navbar a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .navbar a.active { color: #fff; background: rgba(47,129,247,0.15); }
+        .navbar a.active i { color: var(--accent); }
+        .btn-logout { color: #f85149 !important; border: 1px solid rgba(248,81,73,0.3) !important; background: rgba(248,81,73,0.06) !important; }
+        .btn-logout:hover { background: rgba(248,81,73,0.15) !important; }
 
-        /* Cards */
-        .main-card { background:#1a1d29; border:1px solid #2d3142; border-radius:12px; }
+        /* ── Layout ── */
+        .page-wrap { padding: 22px; max-width: 1500px; margin: 0 auto; }
+        .page-heading { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .page-heading i { color: var(--accent); font-size: 0.9rem; }
+        .page-sub { font-size: 0.8rem; color: var(--muted2); margin-bottom: 18px; }
+
+        /* ── Stat pills ── */
+        .stat-bar { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+        .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; display: inline-flex; align-items: center; gap: 10px; }
+        .stat-pill .num { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+        .stat-pill .lbl2 { font-size: 0.69rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── Expiry alert banner ── */
+        #expiryAlertBanner { display: none; background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3); border-radius: 8px; padding: 11px 16px; margin-bottom: 16px; font-size: 0.83rem; display: flex; align-items: center; gap: 10px; }
+
+        /* ── Tab bar ── */
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 0; flex-wrap: wrap; }
+        .tab-btn { background: transparent; color: var(--muted2); border: none; border-bottom: 2px solid transparent; padding: 8px 16px 10px; font-size: 0.82rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: all 0.15s; font-family: 'Inter', sans-serif; margin-bottom: -1px; border-radius: 0; }
+        .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+        .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); background: transparent; }
+        .tab-btn.active i { color: var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active-tab { display: block; }
+
+        /* ── Card ── */
+        .card-d { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .card-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); }
+        .card-head h6 { font-size: 0.82rem; font-weight: 600; color: var(--text); margin: 0; display: flex; align-items: center; gap: 8px; }
+        .card-head h6 i { color: var(--accent); font-size: 0.76rem; }
+        .card-body-p { padding: 16px; }
+
+        /* ── Form controls ── */
+        .lbl { font-size: 0.73rem; color: var(--muted2); font-weight: 500; margin-bottom: 4px; display: block; }
         .form-control, .form-select {
-            background:#222634; border:1px solid #3a3f58; color:#fff; }
-        .form-control:focus, .form-select:focus {
-            background:#25293c; color:#fff; border-color:#4e73df; box-shadow:none; }
-        .form-label { color:#cbd5e0; font-weight:500; font-size:.88rem; }
-        .id-badge { background:#25293c; color:#38bdf8; padding:3px 8px;
-                    border-radius:4px; font-family:monospace; font-size:.82rem; }
+            background: #0d1117; border: 1px solid var(--border2); color: var(--text);
+            font-size: 0.83rem; font-family: 'Inter', sans-serif; border-radius: 7px; padding: 8px 11px;
+            transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+        }
+        .form-control:focus, .form-select:focus { background: #0d1117; color: var(--text); border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,129,247,0.15); outline: none; }
+        .form-control::placeholder { color: var(--muted); }
+        .form-select option { background: #1c2128; }
+        textarea.form-control { resize: vertical; }
+        .form-control[type="date"], .form-control[type="datetime-local"] { color-scheme: dark; }
 
-        /* Table */
-        .table { color:#e4e6eb !important; }
-        .table th { background:#25293c !important; color:#fff !important;
-                    border-bottom:2px solid #2d3142 !important; font-size:.75rem;
-                    letter-spacing:.6px; text-transform:uppercase; }
-        .table td { background:#1a1d29 !important; border-bottom:1px solid #2d3142 !important; color:#e4e6eb !important; }
-        .table-hover tbody tr:hover td { background:#222634 !important; }
+        /* ── Buttons ── */
+        .btn-primary-d { background: var(--accent); color: #fff; border: none; padding: 8px 18px; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; font-family: 'Inter', sans-serif; }
+        .btn-primary-d:hover { background: #388bfd; }
+        .btn-primary-d:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-success-d { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid rgba(63,185,80,0.3); padding: 8px 18px; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; font-family: 'Inter', sans-serif; }
+        .btn-success-d:hover { background: rgba(63,185,80,0.2); }
+        .btn-ghost { background: rgba(255,255,255,0.05); color: var(--muted2); border: 1px solid var(--border2); padding: 8px 14px; border-radius: 7px; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; font-family: 'Inter', sans-serif; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+        .btn-del { background: rgba(248,81,73,0.08); color: var(--red); border: 1px solid rgba(248,81,73,0.2); border-radius: 5px; padding: 4px 10px; font-size: 0.72rem; cursor: pointer; transition: all 0.12s; font-family: 'Inter', sans-serif; }
+        .btn-del:hover { background: rgba(248,81,73,0.18); }
 
-        /* Expiry Alert Banner */
-        #expiryAlertBanner {
-            display:none; background:rgba(245,158,11,.08);
-            border:1px solid rgba(245,158,11,.3); border-radius:8px;
-            padding:12px 20px; margin-bottom:20px; font-size:.88rem; }
+        /* ── Search bar ── */
+        .search-wrap { position: relative; }
+        .search-wrap .si { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.78rem; }
+        .search-wrap input { padding-left: 32px; }
 
-        /* Toast */
-        .toast-notification {
-            position:fixed; bottom:24px; right:24px; padding:1rem 1.5rem;
-            background:#1e293b; border-left:4px solid #10b981; color:#fff; border-radius:6px;
-            box-shadow:0 10px 25px -5px rgba(0,0,0,.5); display:flex; align-items:center;
-            gap:12px; z-index:99999; transform:translateY(100px); opacity:0;
-            transition:all .3s cubic-bezier(.4,0,.2,1); }
-        .toast-notification.show { transform:translateY(0); opacity:1; }
-        .toast-notification.error { border-left-color:#ef4444; }
+        /* ── Table ── */
+        .tbl { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .tbl th { background: rgba(255,255,255,0.02); color: var(--muted2); font-weight: 600; text-transform: uppercase; font-size: 0.69rem; letter-spacing: 0.7px; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .tbl td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+        .tbl tbody tr:last-child td { border-bottom: none; }
+        .tbl tbody tr:hover td { background: rgba(255,255,255,0.02); }
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.79rem; }
+        .id-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; background: rgba(47,129,247,0.12); color: var(--accent2); border: 1px solid rgba(47,129,247,0.25); padding: 2px 7px; border-radius: 4px; }
+        .barcode-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted2); background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; }
+
+        /* ── Section label ── */
+        .section-lbl { font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 14px 0 10px; }
+
+        /* ── Category tree ── */
+        .cat-node { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+        .cat-node-head { display: flex; justify-content: space-between; align-items: center; }
+        .cat-name { font-weight: 600; color: #fff; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .sub-chips { margin-top: 9px; padding-left: 20px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .sub-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(47,129,247,0.08); color: var(--muted2); border: 1px solid rgba(47,129,247,0.15); padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; }
+        .sub-chip .x { cursor: pointer; color: var(--red); font-size: 0.7rem; }
+        .sub-chip .x:hover { color: #ff6b6b; }
+
+        /* ── Toast ── */
+        .toast-n { position: fixed; bottom: 24px; right: 24px; padding: 0.85rem 1.25rem; background: var(--card); border-left: 4px solid var(--green); color: var(--text); border-radius: 6px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; z-index: 99999; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); font-size: 0.85rem; font-weight: 500; }
+        .toast-n.show { transform: translateY(0); opacity: 1; }
+        .toast-n.error { border-left-color: var(--red); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+        @media (max-width: 900px) { .stat-bar { flex-wrap: wrap; } }
     </style>
 </head>
 <body>
 
+<!-- ═══════════════ NAVBAR ═══════════════ -->
 <nav class="navbar">
-    <div class="nav-links">
-        <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
-        <a href="products.html" class="active"><i class="fa-solid fa-box"></i> Products</a>
-        <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
-        <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
-        <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
-        <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-    </div>
-    <div>
-        <a href="#" class="btn-logout" onclick="logout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </a>
-    </div>
-</nav>
-
-<div class="container my-4">
-
-    <!-- Expiry Alert Banner -->
-    <div id="expiryAlertBanner"></div>
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-white m-0">Products & Inventory</h2>
-            <p class="m-0" style="color:#94a3b8;">Manage products, vendors, categories</p>
+    <div style="display:flex;align-items:center;">
+        <div class="nav-brand"><div class="dot"></div> IBS · ERP</div>
+        <div class="nav-links">
+            <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="products.html" class="active"><i class="fa-solid fa-box"></i> Products</a>
+            <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="billing.html"><i class="fa-solid fa-receipt"></i> Billing</a>
+            <a href="bill_history.html"><i class="fa-solid fa-history"></i> Bill History</a>
+            <a href="analytics.html"><i class="fa-solid fa-chart-line"></i> Analytics</a>
         </div>
     </div>
+    <a href="#" class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</nav>
 
-    <!-- TAB BAR -->
+<div class="page-wrap">
+
+    <div class="page-heading"><i class="fa-solid fa-box"></i> Products & Inventory</div>
+    <div class="page-sub">Manage products, vendors, and categories.</div>
+
+    <!-- Expiry Alert Banner -->
+    <div id="expiryAlertBanner" style="display:none;"></div>
+
+    <!-- Stat Pills -->
+    <div class="stat-bar">
+        <div class="stat-pill"><i class="fa-solid fa-box" style="color:var(--accent2);"></i><div><div class="num" id="stat_products">0</div><div class="lbl2">Products</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-circle-check" style="color:var(--green);"></i><div><div class="num" id="stat_instock">0</div><div class="lbl2">In Stock</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-circle-exclamation" style="color:var(--red);"></i><div><div class="num" id="stat_lowstock">0</div><div class="lbl2">Low Stock</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-clock" style="color:var(--amber);"></i><div><div class="num" id="stat_expiring">0</div><div class="lbl2">Expiring Soon</div></div></div>
+        <div class="stat-pill"><i class="fa-solid fa-truck" style="color:var(--purple);"></i><div><div class="num" id="stat_vendors">0</div><div class="lbl2">Vendors</div></div></div>
+    </div>
+
+    <!-- Tab Bar -->
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-products')">
-            <i class="fa-solid fa-box me-1"></i> Products
+        <button class="tab-btn active" onclick="switchTab('tab-products', this)">
+            <i class="fa-solid fa-table"></i> Products List
         </button>
-        <button class="tab-btn" onclick="switchTab('tab-add-product')">
-            <i class="fa-solid fa-plus me-1"></i> Add Product
+        <button class="tab-btn" onclick="switchTab('tab-add-product', this)">
+            <i class="fa-solid fa-plus"></i> Add Product
         </button>
-        <button class="tab-btn" onclick="switchTab('tab-vendors')">
-            <i class="fa-solid fa-truck me-1"></i> Vendor Master Book
+        <button class="tab-btn" onclick="switchTab('tab-vendors', this)">
+            <i class="fa-solid fa-truck"></i> Vendor Book
         </button>
-        <button class="tab-btn" onclick="switchTab('tab-categories')">
-            <i class="fa-solid fa-tags me-1"></i> Categories
+        <button class="tab-btn" onclick="switchTab('tab-categories', this)">
+            <i class="fa-solid fa-tags"></i> Categories
         </button>
     </div>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- TAB 1: PRODUCTS TABLE                      -->
-    <!-- ══════════════════════════════════════════ -->
-    <div id="tab-products" class="tab-content" style="display:block;">
-        <div class="main-card overflow-hidden">
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TAB 1 — PRODUCTS TABLE                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="tab-products" class="tab-content active-tab">
+        <div class="card-d">
+            <div class="card-head">
+                <h6><i class="fa-solid fa-table"></i> Inventory Records</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="search-wrap">
+                        <i class="fa-solid fa-magnifying-glass si"></i>
+                        <input class="form-control" id="search_products" placeholder="Search products…" oninput="filterProducts()" style="width:220px;">
+                    </div>
+                    <select class="form-select" id="filter_category" onchange="filterProducts()" style="width:160px;">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select class="form-select" id="filter_stock" onchange="filterProducts()" style="width:140px;">
+                        <option value="">All Stock</option>
+                        <option value="low">Low Stock (≤5)</option>
+                        <option value="ok">In Stock (&gt;5)</option>
+                    </select>
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-hover align-middle m-0">
+                <table class="tbl">
                     <thead>
                         <tr>
-                            <th class="ps-3">ID</th>
+                            <th>ID</th>
                             <th>Product / Description</th>
                             <th>Challan No.</th>
                             <th>Vendor</th>
@@ -131,141 +220,188 @@
                             <th>Stock</th>
                             <th>Expiry</th>
                             <th>Barcode</th>
-                            <th class="pe-3">Action</th>
+                            <th style="text-align:right;padding-right:20px;">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="productsTable"></tbody>
+                    <tbody id="productsTable">
+                        <tr><td colspan="10" class="text-center py-5" style="color:var(--muted);"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Loading inventory…</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- TAB 2: ADD PRODUCT FORM                    -->
-    <!-- ══════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TAB 2 — ADD PRODUCT                         -->
+    <!-- ═══════════════════════════════════════════ -->
     <div id="tab-add-product" class="tab-content">
-        <div class="main-card p-4">
-            <h5 class="fw-bold text-white mb-4">
-                <i class="fa-solid fa-box-open me-2 text-primary"></i>Add New Product
-            </h5>
-            <form id="productForm">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Product Name *</label>
-                        <input type="text" id="name" class="form-control" placeholder="e.g., Paracetamol 500mg">
+        <div class="row g-3">
+            <div class="col-xl-8">
+                <div class="card-d">
+                    <div class="card-head">
+                        <h6><i class="fa-solid fa-box-open"></i> <span id="prod_form_title">New Product</span></h6>
+                        <button class="btn-ghost" onclick="loadProductDemo()"><i class="fa-solid fa-wand-magic-sparkles"></i> Load Demo</button>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Price (₹) *</label>
-                        <input type="number" id="price" class="form-control" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Stock Quantity *</label>
-                        <input type="number" id="stock" class="form-control" placeholder="0">
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Description</label>
-                        <input type="text" id="prod_desc" class="form-control" placeholder="Short product description">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Challan No.</label>
-                        <input type="text" id="prod_challan" class="form-control" placeholder="e.g., CH-2024-001">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Vendor</label>
-                        <select id="prod_vendor" class="form-select">
-                            <option value="">— Select Vendor —</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Category</label>
-                        <select id="prod_category" class="form-select" onchange="onCategoryChange()">
-                            <option value="">— Select Category —</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Subcategory</label>
-                        <select id="prod_subcategory" class="form-select">
-                            <option value="">— Select Subcategory —</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Manufactured Date</label>
-                        <input type="date" id="prod_mfg_date" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Expiry Date</label>
-                        <input type="date" id="prod_expiry" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Arrived At (Date & Time)</label>
-                        <input type="datetime-local" id="prod_arrived_at" class="form-control">
-                    </div>
-                    <div class="col-12 mt-2">
-                        <button type="button" id="productSubmitBtn" onclick="addProduct()"
-                            class="btn btn-primary fw-bold px-4">
-                            <i class="fa-solid fa-floppy-disk me-2"></i>Save Product
-                        </button>
+                    <div class="card-body-p">
+                        <form id="productForm">
+                            <div class="section-lbl">Basic Information</div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="lbl">Product Name *</label>
+                                    <input type="text" id="name" class="form-control" placeholder="e.g., Paracetamol 500mg">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="lbl">Price (₹) *</label>
+                                    <input type="number" id="price" class="form-control" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="lbl">Stock Quantity *</label>
+                                    <input type="number" id="stock" class="form-control" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <label class="lbl">Description</label>
+                                    <textarea id="prod_desc" class="form-control" rows="2" placeholder="Optional product description…"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="section-lbl">Classification</div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="lbl">Category</label>
+                                    <select id="prod_category" class="form-select" onchange="onCategoryChange()">
+                                        <option value="">— Select Category —</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="lbl">Subcategory</label>
+                                    <select id="prod_subcategory" class="form-select">
+                                        <option value="">— Select Subcategory —</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="lbl">Vendor</label>
+                                    <select id="prod_vendor" class="form-select">
+                                        <option value="">— Select Vendor —</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="section-lbl">Logistics & Tracking</div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="lbl">Challan No.</label>
+                                    <input type="text" id="prod_challan" class="form-control" placeholder="e.g., CH-2024-001">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="lbl">Manufactured Date</label>
+                                    <input type="date" id="prod_mfg_date" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="lbl">Expiry Date</label>
+                                    <input type="date" id="prod_expiry" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="lbl">Arrived At</label>
+                                    <input type="datetime-local" id="prod_arrived_at" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" id="productSubmitBtn" class="btn-primary-d" onclick="addProduct()">
+                                    <i class="fa-solid fa-floppy-disk"></i> Save Product
+                                </button>
+                                <button type="button" class="btn-ghost" id="prod_cancel_btn" style="display:none;" onclick="resetProductForm()">Cancel</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </form>
+            </div>
+            <div class="col-xl-4">
+                <div class="card-d">
+                    <div class="card-head"><h6><i class="fa-solid fa-circle-info"></i> Tips</h6></div>
+                    <div class="card-body-p">
+                        <p style="font-size:0.8rem;color:var(--muted2);line-height:1.7;">
+                            <i class="fa-solid fa-check" style="color:var(--green);margin-right:6px;"></i> A unique barcode is auto-generated on save.<br>
+                            <i class="fa-solid fa-check" style="color:var(--green);margin-right:6px;"></i> Products with stock ≤5 are flagged as <span style="color:var(--red);">Low Stock</span>.<br>
+                            <i class="fa-solid fa-check" style="color:var(--green);margin-right:6px;"></i> Expiry alerts fire 30 days before expiry date.<br>
+                            <i class="fa-solid fa-check" style="color:var(--green);margin-right:6px;"></i> Assign a vendor for better purchase tracking.
+                        </p>
+                        <div class="section-lbl" style="margin-top:16px;">Stock Status Legend</div>
+                        <div style="display:flex;flex-direction:column;gap:7px;font-size:0.79rem;">
+                            <span><span style="color:var(--green);font-weight:600;">● In Stock</span> — quantity &gt; 5</span>
+                            <span><span style="color:var(--red);font-weight:600;">● Low Stock</span> — quantity ≤ 5</span>
+                            <span><span style="color:var(--amber);font-weight:600;">● Expiring</span> — within 30 days</span>
+                            <span><span style="color:var(--red);font-weight:600;">● Critical</span> — within 7 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- TAB 3: VENDOR MASTER BOOK                  -->
-    <!-- ══════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TAB 3 — VENDOR BOOK                         -->
+    <!-- ═══════════════════════════════════════════ -->
     <div id="tab-vendors" class="tab-content">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="main-card p-4">
-                    <h5 class="fw-bold text-white mb-3">
-                        <i class="fa-solid fa-truck me-2 text-primary"></i>Add Vendor
-                    </h5>
-                    <div class="mb-2">
-                        <label class="form-label">Vendor Name *</label>
-                        <input type="text" id="v_name" class="form-control" placeholder="e.g., Sun Pharma Ltd">
+        <div class="row g-3">
+            <div class="col-xl-3 col-lg-4">
+                <div class="card-d">
+                    <div class="card-head"><h6><i class="fa-solid fa-truck"></i> Add Vendor</h6></div>
+                    <div class="card-body-p">
+                        <div class="mb-3">
+                            <label class="lbl">Vendor Name *</label>
+                            <input type="text" id="v_name" class="form-control" placeholder="e.g., Sun Pharma Ltd">
+                        </div>
+                        <div class="mb-3">
+                            <label class="lbl">Vendor Code *</label>
+                            <input type="text" id="v_code" class="form-control" placeholder="e.g., SUNPH-001" style="font-family:'JetBrains Mono',monospace;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="lbl">Contact Person</label>
+                            <input type="text" id="v_contact" class="form-control" placeholder="e.g., Rajesh Kumar">
+                        </div>
+                        <div class="mb-3">
+                            <label class="lbl">Phone</label>
+                            <input type="text" id="v_phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+                        </div>
+                        <div class="mb-3">
+                            <label class="lbl">Email</label>
+                            <input type="email" id="v_email" class="form-control" placeholder="vendor@email.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="lbl">Address</label>
+                            <input type="text" id="v_address" class="form-control" placeholder="City, State">
+                        </div>
+                        <button class="btn-success-d w-100" onclick="addVendor()">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Vendor
+                        </button>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label">Vendor Code *</label>
-                        <input type="text" id="v_code" class="form-control" placeholder="e.g., SUNPH-001">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Contact Person</label>
-                        <input type="text" id="v_contact" class="form-control" placeholder="e.g., Rajesh Kumar">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Phone</label>
-                        <input type="text" id="v_phone" class="form-control" placeholder="+91 XXXXX XXXXX">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="v_email" class="form-control" placeholder="vendor@email.com">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <input type="text" id="v_address" class="form-control" placeholder="City, State">
-                    </div>
-                    <button onclick="addVendor()" class="btn btn-success w-100 fw-bold">
-                        <i class="fa-solid fa-floppy-disk me-2"></i>Save Vendor
-                    </button>
                 </div>
             </div>
-            <div class="col-md-8">
-                <div class="main-card overflow-hidden">
+            <div class="col-xl-9 col-lg-8">
+                <div class="card-d">
+                    <div class="card-head">
+                        <h6><i class="fa-solid fa-address-book"></i> Vendor Directory</h6>
+                        <span id="vendor_count_badge" style="font-size:0.72rem;color:var(--muted2);">0 vendors</span>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0">
+                        <table class="tbl">
                             <thead>
                                 <tr>
-                                    <th class="ps-3">ID</th>
+                                    <th>ID</th>
                                     <th>Vendor Name</th>
                                     <th>Code</th>
                                     <th>Contact</th>
                                     <th>Phone</th>
                                     <th>Email</th>
-                                    <th class="pe-3">Action</th>
+                                    <th style="text-align:right;padding-right:20px;">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="vendorTableBody"></tbody>
+                            <tbody id="vendorTableBody">
+                                <tr><td colspan="7" class="text-center py-5" style="color:var(--muted);"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Loading vendors…</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -273,77 +409,430 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════ -->
-    <!-- TAB 4: CATEGORY MANAGER                    -->
-    <!-- ══════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TAB 4 — CATEGORY MANAGER                    -->
+    <!-- ═══════════════════════════════════════════ -->
     <div id="tab-categories" class="tab-content">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="main-card p-4 mb-3">
-                    <h5 class="fw-bold text-white mb-3">
-                        <i class="fa-solid fa-folder-plus me-2 text-primary"></i>Add Category
-                    </h5>
-                    <div class="mb-2">
-                        <label class="form-label">Category Name</label>
-                        <input type="text" id="new_category_name" class="form-control" placeholder="e.g., Pharmaceuticals">
+        <div class="row g-3">
+            <div class="col-xl-3 col-lg-4">
+                <div class="card-d mb-3">
+                    <div class="card-head"><h6><i class="fa-solid fa-folder-plus"></i> Add Category</h6></div>
+                    <div class="card-body-p">
+                        <div class="mb-3">
+                            <label class="lbl">Category Name *</label>
+                            <input type="text" id="new_category_name" class="form-control" placeholder="e.g., Pharmaceuticals">
+                        </div>
+                        <button class="btn-primary-d w-100" onclick="addCategory()">
+                            <i class="fa-solid fa-plus"></i> Add Category
+                        </button>
                     </div>
-                    <button onclick="addCategory()" class="btn btn-primary w-100 fw-bold">
-                        <i class="fa-solid fa-plus me-2"></i>Add Category
-                    </button>
                 </div>
-                <div class="main-card p-4">
-                    <h5 class="fw-bold text-white mb-3">
-                        <i class="fa-solid fa-tag me-2 text-success"></i>Add Subcategory
-                    </h5>
-                    <div class="mb-2">
-                        <label class="form-label">Parent Category</label>
-                        <select id="sub_category_select" class="form-select">
-                            <option value="">— Select Category —</option>
-                        </select>
+                <div class="card-d">
+                    <div class="card-head"><h6><i class="fa-solid fa-tag"></i> Add Subcategory</h6></div>
+                    <div class="card-body-p">
+                        <div class="mb-3">
+                            <label class="lbl">Parent Category *</label>
+                            <select id="sub_category_select" class="form-select">
+                                <option value="">— Select Category —</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="lbl">Subcategory Name *</label>
+                            <input type="text" id="new_subcategory_name" class="form-control" placeholder="e.g., Antibiotics">
+                        </div>
+                        <button class="btn-success-d w-100" onclick="addSubcategory()">
+                            <i class="fa-solid fa-plus"></i> Add Subcategory
+                        </button>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label">Subcategory Name</label>
-                        <input type="text" id="new_subcategory_name" class="form-control" placeholder="e.g., Antibiotics">
-                    </div>
-                    <button onclick="addSubcategory()" class="btn btn-success w-100 fw-bold">
-                        <i class="fa-solid fa-plus me-2"></i>Add Subcategory
-                    </button>
                 </div>
             </div>
-            <div class="col-md-8">
-                <div class="main-card p-4">
-                    <h5 class="fw-bold text-white mb-3">Category Tree</h5>
-                    <div id="categoryManagerList"></div>
+            <div class="col-xl-9 col-lg-8">
+                <div class="card-d">
+                    <div class="card-head">
+                        <h6><i class="fa-solid fa-folder-tree"></i> Category Tree</h6>
+                        <span id="cat_count_badge" style="font-size:0.72rem;color:var(--muted2);">0 categories</span>
+                    </div>
+                    <div class="card-body-p" id="categoryManagerList">
+                        <p style="color:var(--muted);font-size:0.82rem;">No categories yet.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
+</div><!-- end .page-wrap -->
 
 <script>
 const API_BASE_URL = "http://127.0.0.1:5000";
-function logout() { localStorage.removeItem("auth_token"); window.location.href = "index.html"; }
+let allCategories = [], allVendors = [], allProducts = [];
+
+function getToken() { return localStorage.getItem("auth_token") || ""; }
+function authHdr()  { return { "Content-Type": "application/json", "Authorization": "Bearer " + getToken() }; }
+function logout()   { localStorage.removeItem("auth_token"); window.location.href = "index.html"; }
+
+/* ── Toast ── */
 function showToast(message, type = "success") {
-    const old = document.querySelector('.toast-notification');
-    if (old) old.remove();
-    const toast = document.createElement('div');
-    toast.className = `toast-notification ${type}`;
-    const icon  = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-    const color = type === "success" ? "#10b981" : "#ef4444";
-    toast.innerHTML = `<i class="fa-solid ${icon}" style="color:${color};font-size:1.1rem;"></i> ${message}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 50);
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
+    const old = document.querySelector('.toast-n'); if (old) old.remove();
+    const t = document.createElement('div'); t.className = `toast-n ${type}`;
+    const ic = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
+    const cl = type === "success" ? "var(--green)" : "var(--red)";
+    t.innerHTML = `<i class="fa-solid ${ic}" style="color:${cl};"></i> ${message}`;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 40);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 5000);
 }
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+
+/* ── Tab switcher ── */
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-content').forEach(t => { t.style.display = 'none'; t.classList.remove('active-tab'); });
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
-    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active-tab');
+    if (el) el.classList.add('active');
+    if (tabId === 'tab-categories') populateSubCategorySelect(allCategories);
+}
+
+/* ── Boot ── */
+document.addEventListener("DOMContentLoaded", () => {
+    loadCategories();
+    loadVendors();
+    loadProducts();
+    loadExpiryAlerts();
+});
+
+/* ── Expiry Alerts ── */
+function loadExpiryAlerts() {
+    fetch(`${API_BASE_URL}/products/expiry-alerts`, { headers: authHdr() })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.length) return;
+        const banner = document.getElementById("expiryAlertBanner");
+        banner.style.display = "flex";
+        banner.innerHTML = `
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--amber);flex-shrink:0;"></i>
+            <strong style="color:#fbbf24;">${data.length} product(s) expiring within 30 days!</strong>
+            <span style="color:var(--muted2);margin-left:6px;">${data.map(p => `<b style="color:var(--text);">${p.product_name}</b> (${p.days_remaining}d)`).join(', ')}</span>`;
+        document.getElementById("stat_expiring").textContent = data.length;
+    })
+    .catch(() => {});
+}
+
+/* ── Products ── */
+function loadProducts() {
+    const table = document.getElementById("productsTable");
+    fetch(`${API_BASE_URL}/products`, { headers: authHdr() })
+    .then(r => r.json())
+    .then(data => {
+        allProducts = data;
+        updateProductStats(data);
+        renderProductTable(data);
+    })
+    .catch(() => {
+        table.innerHTML = `<tr><td colspan="10" class="text-center py-5" style="color:var(--red);"><i class="fa-solid fa-triangle-exclamation me-2"></i>Failed to load. Is the server running?</td></tr>`;
+    });
+}
+
+function updateProductStats(data) {
+    document.getElementById("stat_products").textContent  = data.length;
+    document.getElementById("stat_instock").textContent   = data.filter(p => p.stock_quantity > 5).length;
+    document.getElementById("stat_lowstock").textContent  = data.filter(p => p.stock_quantity <= 5).length;
+}
+
+function renderProductTable(data) {
+    const table = document.getElementById("productsTable");
+    if (!data.length) {
+        table.innerHTML = `<tr><td colspan="10" class="text-center py-5" style="color:var(--muted);">No products found. Add your first product!</td></tr>`;
+        return;
+    }
+    const today = new Date();
+    table.innerHTML = data.map(p => {
+        const expiry   = p.expiry_date ? new Date(p.expiry_date) : null;
+        const daysLeft = expiry ? Math.ceil((expiry - today) / 86400000) : null;
+        const expiryBadge = daysLeft === null
+            ? `<span style="color:var(--muted);">N/A</span>`
+            : daysLeft <= 7
+                ? `<span style="color:var(--red);font-weight:600;" title="${daysLeft} days left">${p.expiry_date} <small>(${daysLeft}d ⚠)</small></span>`
+                : daysLeft <= 30
+                    ? `<span style="color:var(--amber);font-weight:600;">${p.expiry_date} <small>(${daysLeft}d)</small></span>`
+                    : `<span style="color:var(--green);">${p.expiry_date} <small style="color:var(--muted2);">(${daysLeft}d)</small></span>`;
+        const stockColor = p.stock_quantity <= 5 ? 'var(--red)' : 'var(--green)';
+        return `<tr>
+            <td><span class="id-badge">#${p.product_id}</span></td>
+            <td>
+                <div style="font-weight:600;color:#fff;">${p.product_name}</div>
+                ${p.description ? `<div style="color:var(--muted);font-size:0.75rem;margin-top:2px;">${p.description}</div>` : ''}
+            </td>
+            <td class="mono" style="color:var(--muted2);">${p.challan_no || '—'}</td>
+            <td>
+                <div style="color:var(--text);font-weight:500;">${p.vendor_name || '—'}</div>
+                ${p.vendor_code ? `<div class="mono" style="color:var(--cyan);font-size:0.72rem;">${p.vendor_code}</div>` : ''}
+            </td>
+            <td>
+                <div style="color:var(--muted2);">${p.category_name || '—'}</div>
+                ${p.subcategory_name ? `<div style="color:var(--muted);font-size:0.73rem;">${p.subcategory_name}</div>` : ''}
+            </td>
+            <td class="mono" style="color:var(--accent2);font-weight:600;">₹${parseFloat(p.price || 0).toFixed(2)}</td>
+            <td><span style="color:${stockColor};font-weight:600;">${p.stock_quantity} <span style="font-weight:400;color:var(--muted);font-size:0.75rem;">units</span></span></td>
+            <td>${expiryBadge}</td>
+            <td><span class="barcode-chip" title="${p.barcode || 'N/A'}">${p.barcode || 'N/A'}</span></td>
+            <td style="text-align:right;padding-right:20px;">
+                <button class="btn-del" onclick="deleteProduct(${p.product_id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function filterProducts() {
+    const q    = document.getElementById("search_products").value.toLowerCase();
+    const cat  = document.getElementById("filter_category").value;
+    const stk  = document.getElementById("filter_stock").value;
+    let filtered = allProducts.filter(p => {
+        const matchQ   = !q || (p.product_name||"").toLowerCase().includes(q) || (p.description||"").toLowerCase().includes(q) || (p.barcode||"").toLowerCase().includes(q) || (p.vendor_name||"").toLowerCase().includes(q);
+        const matchCat = !cat || String(p.category_id) === cat;
+        const matchStk = !stk || (stk==="low" ? p.stock_quantity <= 5 : p.stock_quantity > 5);
+        return matchQ && matchCat && matchStk;
+    });
+    renderProductTable(filtered);
+}
+
+function addProduct() {
+    const name  = document.getElementById("name").value.trim();
+    const price = document.getElementById("price").value;
+    const stock = document.getElementById("stock").value;
+    if (!name)                    return showToast("Product name is required.", "error");
+    if (isNaN(parseFloat(price))) return showToast("Enter a valid price.", "error");
+    if (isNaN(parseInt(stock)))   return showToast("Enter a valid stock quantity.", "error");
+
+    const payload = {
+        product_name:      name,
+        description:       document.getElementById("prod_desc").value.trim(),
+        price:             parseFloat(price),
+        stock_quantity:    parseInt(stock),
+        challan_no:        document.getElementById("prod_challan").value.trim(),
+        vendor_id:         parseInt(document.getElementById("prod_vendor").value) || null,
+        category_id:       parseInt(document.getElementById("prod_category").value) || null,
+        subcategory_id:    parseInt(document.getElementById("prod_subcategory").value) || null,
+        manufactured_date: document.getElementById("prod_mfg_date").value || null,
+        expiry_date:       document.getElementById("prod_expiry").value || null,
+        arrived_at:        document.getElementById("prod_arrived_at").value || null
+    };
+
+    const btn = document.getElementById("productSubmitBtn");
+    btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Saving…`;
+
+    fetch(`${API_BASE_URL}/products`, { method: "POST", headers: authHdr(), body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(d => {
+        if (d.error) return showToast(d.error, "error");
+        showToast(`Product added! Barcode: ${d.barcode || 'generated'}`);
+        document.getElementById("productForm").reset();
+        document.getElementById("prod_subcategory").innerHTML = `<option value="">— Select Subcategory —</option>`;
+        loadProducts(); loadExpiryAlerts();
+    })
+    .catch(() => showToast("Failed to add product.", "error"))
+    .finally(() => { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Product`; });
+}
+
+function deleteProduct(id) {
+    if (!confirm("Delete this product from inventory?")) return;
+    fetch(`${API_BASE_URL}/products/${id}`, { method: "DELETE", headers: authHdr() })
+    .then(r => r.json())
+    .then(d => { showToast(d.message || "Product deleted."); loadProducts(); })
+    .catch(() => showToast("Delete failed.", "error"));
+}
+
+function resetProductForm() {
+    document.getElementById("productForm").reset();
+    document.getElementById("prod_subcategory").innerHTML = `<option value="">— Select Subcategory —</option>`;
+    document.getElementById("prod_cancel_btn").style.display = "none";
+    document.getElementById("prod_form_title").textContent = "New Product";
+    document.getElementById("productSubmitBtn").innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save Product`;
+}
+
+function loadProductDemo() {
+    document.getElementById("name").value = "Wireless Mouse Pro X";
+    document.getElementById("price").value = "1299";
+    document.getElementById("stock").value = "50";
+    document.getElementById("prod_desc").value = "High-precision 2.4GHz wireless mouse, 1600 DPI, ergonomic design.";
+    document.getElementById("prod_challan").value = "CH-2024-088";
+    document.getElementById("prod_mfg_date").value = "2024-01-15";
+    document.getElementById("prod_expiry").value = "2027-01-15";
+    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById("prod_arrived_at").value = now.toISOString().slice(0,16);
+    showToast("Demo data loaded!");
+}
+
+/* ── Categories ── */
+function loadCategories() {
+    fetch(`${API_BASE_URL}/categories`, { headers: authHdr() })
+    .then(r => r.json())
+    .then(data => {
+        allCategories = data;
+        const catSelect = document.getElementById("prod_category");
+        if (catSelect) {
+            catSelect.innerHTML = `<option value="">— Select Category —</option>`;
+            data.forEach(c => catSelect.innerHTML += `<option value="${c.category_id}">${c.category_name}</option>`);
+        }
+        const catFilter = document.getElementById("filter_category");
+        if (catFilter) {
+            catFilter.innerHTML = `<option value="">All Categories</option>`;
+            data.forEach(c => catFilter.innerHTML += `<option value="${c.category_id}">${c.category_name}</option>`);
+        }
+        renderCategoryManager(data);
+        populateSubCategorySelect(data);
+    })
+    .catch(() => {});
+}
+
+function onCategoryChange() {
+    const catId = document.getElementById("prod_category").value;
+    const sub   = document.getElementById("prod_subcategory");
+    sub.innerHTML = `<option value="">— Select Subcategory —</option>`;
+    if (!catId) return;
+    const cat = allCategories.find(c => c.category_id == catId);
+    if (cat && cat.subcategories) {
+        cat.subcategories.forEach(s => sub.innerHTML += `<option value="${s.subcategory_id}">${s.subcategory_name}</option>`);
+    }
+}
+
+function addCategory() {
+    const name = document.getElementById("new_category_name").value.trim();
+    if (!name) return showToast("Category name required.", "error");
+    fetch(`${API_BASE_URL}/categories`, { method: "POST", headers: authHdr(), body: JSON.stringify({ category_name: name }) })
+    .then(r => r.json())
+    .then(d => { if (d.error) return showToast(d.error, "error"); showToast(d.message || "Category added!"); document.getElementById("new_category_name").value = ""; loadCategories(); })
+    .catch(() => showToast("Failed to add category.", "error"));
+}
+
+function addSubcategory() {
+    const name  = document.getElementById("new_subcategory_name").value.trim();
+    const catId = document.getElementById("sub_category_select").value;
+    if (!name)  return showToast("Subcategory name required.", "error");
+    if (!catId) return showToast("Select a parent category.", "error");
+    fetch(`${API_BASE_URL}/subcategories`, { method: "POST", headers: authHdr(), body: JSON.stringify({ subcategory_name: name, category_id: parseInt(catId) }) })
+    .then(r => r.json())
+    .then(d => { if (d.error) return showToast(d.error, "error"); showToast(d.message || "Subcategory added!"); document.getElementById("new_subcategory_name").value = ""; loadCategories(); })
+    .catch(() => showToast("Failed to add subcategory.", "error"));
+}
+
+function deleteCategory(id) {
+    if (!confirm("Delete this category and all its subcategories?")) return;
+    fetch(`${API_BASE_URL}/categories/${id}`, { method: "DELETE", headers: authHdr() })
+    .then(r => r.json())
+    .then(d => { showToast(d.message || "Category deleted."); loadCategories(); })
+    .catch(() => showToast("Failed.", "error"));
+}
+
+function deleteSubcategory(id) {
+    fetch(`${API_BASE_URL}/subcategories/${id}`, { method: "DELETE", headers: authHdr() })
+    .then(r => r.json())
+    .then(d => { showToast(d.message || "Subcategory deleted."); loadCategories(); })
+    .catch(() => showToast("Failed.", "error"));
+}
+
+function populateSubCategorySelect(data) {
+    const sel = document.getElementById("sub_category_select");
+    if (!sel) return;
+    sel.innerHTML = `<option value="">— Select Category —</option>`;
+    (data || allCategories).forEach(c => sel.innerHTML += `<option value="${c.category_id}">${c.category_name}</option>`);
+}
+
+function renderCategoryManager(data) {
+    const container = document.getElementById("categoryManagerList");
+    if (!container) return;
+    document.getElementById("cat_count_badge").textContent = `${data.length} categor${data.length===1?'y':'ies'}`;
+    if (!data.length) { container.innerHTML = `<p style="color:var(--muted);font-size:0.82rem;">No categories yet. Add your first category.</p>`; return; }
+    container.innerHTML = data.map(c => `
+        <div class="cat-node">
+            <div class="cat-node-head">
+                <div class="cat-name">
+                    <i class="fa-solid fa-folder" style="color:var(--amber);font-size:0.8rem;"></i>
+                    ${c.category_name}
+                    <span style="color:var(--muted);font-size:0.72rem;font-weight:400;">${c.subcategories?.length||0} sub</span>
+                </div>
+                <button class="btn-del" onclick="deleteCategory(${c.category_id})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            ${c.subcategories && c.subcategories.length
+                ? `<div class="sub-chips">
+                    ${c.subcategories.map(s => `
+                        <span class="sub-chip">
+                            <i class="fa-solid fa-tag" style="color:var(--accent2);font-size:0.65rem;"></i>
+                            ${s.subcategory_name}
+                            <i class="fa-solid fa-xmark x" onclick="deleteSubcategory(${s.subcategory_id})"></i>
+                        </span>`).join('')}
+                   </div>`
+                : `<div style="padding-left:20px;margin-top:7px;font-size:0.75rem;color:var(--muted);">No subcategories yet.</div>`
+            }
+        </div>`).join('');
+    populateSubCategorySelect(data);
+}
+
+/* ── Vendors ── */
+function loadVendors() {
+    fetch(`${API_BASE_URL}/vendors`, { headers: authHdr() })
+    .then(r => r.json())
+    .then(data => {
+        allVendors = data;
+        document.getElementById("stat_vendors").textContent = data.length;
+        document.getElementById("vendor_count_badge").textContent = `${data.length} vendor${data.length===1?'':'s'}`;
+        const sel = document.getElementById("prod_vendor");
+        if (sel) {
+            sel.innerHTML = `<option value="">— Select Vendor —</option>`;
+            data.forEach(v => sel.innerHTML += `<option value="${v.vendor_id}">[${v.vendor_code}] ${v.vendor_name}</option>`);
+        }
+        renderVendorTable(data);
+    })
+    .catch(() => {});
+}
+
+function renderVendorTable(data) {
+    const tbody = document.getElementById("vendorTableBody");
+    if (!tbody) return;
+    if (!data.length) { tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5" style="color:var(--muted);">No vendors yet. Add your first vendor.</td></tr>`; return; }
+    tbody.innerHTML = data.map(v => `
+        <tr>
+            <td><span class="id-badge">#${v.vendor_id}</span></td>
+            <td style="font-weight:600;">${v.vendor_name}</td>
+            <td class="mono" style="color:var(--cyan);">${v.vendor_code}</td>
+            <td style="color:var(--muted2);">${v.contact_person || '—'}</td>
+            <td style="color:var(--muted2);">${v.phone || '—'}</td>
+            <td style="color:var(--accent2);">${v.email || '—'}</td>
+            <td style="text-align:right;padding-right:20px;">
+                <button class="btn-del" onclick="deleteVendor(${v.vendor_id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+}
+
+function addVendor() {
+    const payload = {
+        vendor_name:    document.getElementById("v_name").value.trim(),
+        vendor_code:    document.getElementById("v_code").value.trim(),
+        contact_person: document.getElementById("v_contact").value.trim(),
+        phone:          document.getElementById("v_phone").value.trim(),
+        email:          document.getElementById("v_email").value.trim(),
+        address:        document.getElementById("v_address").value.trim()
+    };
+    if (!payload.vendor_name) return showToast("Vendor name is required.", "error");
+    if (!payload.vendor_code) return showToast("Vendor code is required.", "error");
+    fetch(`${API_BASE_URL}/vendors`, { method: "POST", headers: authHdr(), body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(d => {
+        if (d.error) return showToast(d.error, "error");
+        showToast(d.message || "Vendor added!");
+        ["v_name","v_code","v_contact","v_phone","v_email","v_address"].forEach(id => document.getElementById(id).value = "");
+        loadVendors();
+    })
+    .catch(() => showToast("Failed to add vendor.", "error"));
+}
+
+function deleteVendor(id) {
+    if (!confirm("Delete this vendor?")) return;
+    fetch(`${API_BASE_URL}/vendors/${id}`, { method: "DELETE", headers: authHdr() })
+    .then(r => r.json())
+    .then(d => { showToast(d.message || "Vendor deleted."); loadVendors(); })
+    .catch(() => showToast("Failed to delete vendor.", "error"));
 }
 </script>
-<script src="product.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

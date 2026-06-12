@@ -1,3 +1,4 @@
+
 console.log("🚀 ERP Products Engine — Extended Inventory Mode Active");
 
 let allCategories = [];
